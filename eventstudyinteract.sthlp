@@ -41,9 +41,9 @@ The syntax is similar to {helpb reghdfe} such as absorb and vce, but controls ot
 {synopt :{opth control_cohort(varname)}}numerical variable that corresponds to last cohort{p_end}
 
 {pstd}
-{opt eventstudyinteract} requires {helpb reghdfe} (Sergio 2015) to be installed to partial out controls and fixed effects from the relative time indicators.
+{opt eventstudyinteract} requires {helpb avar} (Baum and Schaffer, 2013) and {helpb reghdfe} (Sergio, 2017) to be installed.
 {opt eventstudyinteract} will prompt the user for installation of
-{helpb hdfe} if necessary.
+{helpb reghdfe} if necessary.
   
 {syntab :Controls}
 {synopt :{opth covariate:s(varlist)}}residualize the relative time indicators on covariates{p_end}
@@ -54,8 +54,20 @@ The syntax is similar to {helpb reghdfe} such as absorb and vce, but controls ot
 may be {opt un:adjusted} (default), {opt r:obust} or {opt cl:uster} {help fvvarlist} (allowing two- and multi-way clustering){p_end}
 {synopt :}suboptions {opt bw(#)}, {opt ker:nel(str)}, {opt dkraay(#)} and {opt kiefer} allow for AC/HAC estimates; see the {help avar} package{p_end}
 
-{syntab :Save Output}
-{synopt :{opt saveweights(filename)}}save weights to {it:filename}.xlsx along with cohort and relative time, using Stata's built-in {helpb putexcel} {p_end}
+{syntab :Saved Output}
+{pstd}
+{opt eventstudyinteract} reports the IW estimates and standard error.  
+Since the interacted regression is performed by {helpb reghdfe}, it keeps all most e() results.  
+In addition, it stores the following in {cmd:e()}:
+
+{synoptset 24 tabbed}{...}
+
+{syntab:Matrices}
+{synopt:{cmd:e(b_iw)}}IW estimate vector{p_end}
+{synopt:{cmd:e(V_iw)}}pointwise variance estimate of the IW estimators{p_end}
+{synopt:{cmd:e(ff_w)}} Each column vector contains estimates of cohort shares underlying the given relative time. {p_end}
+{synopt:{cmd:e(Sigma_l)}}variance estimate of the cohort share estimators{p_end}
+
 {synoptline}
 {p 4 6 2}
 {opt aweight}s and {opt fweight}s are allowed;
@@ -133,11 +145,20 @@ the bugs that they encountered.
 {marker references}{...}
 {title:References}
  
-{marker SC2015}{...}
+{marker BS2013}{...}
 {phang}
-Correia, S. 2015.
-HDFE: Stata module to partial out variables with respect to a set of fixed effects
-{browse "https://ideas.repec.org/c/boc/bocode/s457985.html":https://ideas.repec.org/c/boc/bocode/s457985.html
+Baum, C. and Schaffer, M. 2013. 
+AVAR: Stata module to perform asymptotic covariance estimation for iid and non-iid data robust to heteroskedasticity, autocorrelation, 1- and 2-way clustering, and common cross-panel autocorrelated disturbances.
+Statistical Software Components S457689, Boston College Department of Economics.
+{browse "https://ideas.repec.org/c/boc/bocode/s457689.html":https://ideas.repec.org/c/boc/bocode/s457689.html}
+{p_end}
+ 
+{marker SC2017}{...}
+{phang}
+Correia, S. 2017. 
+REGHDFE: Stata module for linear and instrumental-variable/gmm regression absorbing multiple levels of fixed effects. 
+Statistical Software Components s457874, Boston College Department of Economics. 
+{browse "https://ideas.repec.org/c/boc/bocode/s457874.html":https://ideas.repec.org/c/boc/bocode/s457874.html}
 {p_end}
 
 {marker SA2020}{...}
@@ -153,8 +174,8 @@ Heterogeneous Treatment Effects
 {pstd}{opt eventstudyinteract} is not an official Stata command. It is a free contribution
 to the research community, like a paper. Please cite it as such: {p_end}
 
-{phang}Sun, L., 2020.
-eventstudyinteract: weights underlying two-way fixed effects event studies regressions.
+{phang}Sun, L., 2021.
+eventstudyinteract: interaction weighted estimator for event study.
 {browse "https://github.com/lsun20/eventstudyinteract":https://github.com/lsun20/eventstudyinteract}.
  
 {marker author}{...}

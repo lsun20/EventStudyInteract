@@ -18,19 +18,16 @@ program define eventstudyinteract, eclass sortpreserve
 	local nvarlist ""
 	foreach l of varlist `rel_time_list' {
 		local nvarlist "`nvarlist' `l'"
-	}
-//     dis "`nvarlist'"
-//	qui capture drop  `nvarlist'
-	
+	}	
 	* Get cohort count  and count of relative time
 	qui levelsof `cohort', local(cohort_list) 
  	local nrel_times: word count `nvarlist' 
 	local ncohort: word count `cohort_list'  
-	dis `nrel_times' `ncohort'	
 	
 	* Initiate empty matrix for weights 
 	* ff_w stores the cohort shares (rows) for relative time (cols)
 	tempname bb ff_w
+	
 	* Loop over cohort and get cohort shares for relative times
 	local nresidlist ""
 	foreach yy of local cohort_list {
@@ -45,7 +42,16 @@ program define eventstudyinteract, eclass sortpreserve
  	matrix rownames `ff_w' = `cohort_list'
 	matrix colnames `ff_w' =  `nvarlist'
 	
-	* Get VCV estimate for the cohort shares
+	* Check if use has avar installed
+	capture avar, version 
+	if _rc != 0 {
+		di as err "Error: must have avar installed"
+		di as err "To install, from within Stata type " _c
+		di in smcl "{stata ssc install avar :ssc install avar}"
+					exit 601
+	}
+	
+	* Get VCV estimate for the cohort shares using avar
 	tempname XX Sxx Sxxi S KSxxi Sigma_ff
 	mat accum `XX' = `nvarlist' if  `touse' & `control_cohort' == 0 , nocons
 	mat `Sxx' = `XX'*1/r(N)
@@ -54,19 +60,8 @@ program define eventstudyinteract, eclass sortpreserve
 	mat `S' = r(S)
     mat `KSxxi' = I(`ncohort')#`Sxxi'
     mat `Sigma_ff' = `KSxxi'*`S'*`KSxxi'*1/r(N)
-// 	local cn : colfullnames `S'
-//     mat colnames `Sigma_ff' = `cn'
-//     mat rownames `Sigma_ff' = `cn'
-
-//  	mat list `ff_w'
-// 	mat list `Sigma_ff'
 	
 	* Prepare interaction terms for the interacted regression
-	local nrel_times: word count `nvarlist' 
-	local ncohort: word count `cohort_list'  
-	dis `nrel_times' `ncohort'
- 
-	* Prepare the list of relative time indicators for interactions
 	local cohort_rel_varlist ""
 	foreach l of varlist `rel_time_list' {
 		foreach yy of local cohort_list {
@@ -75,20 +70,22 @@ program define eventstudyinteract, eclass sortpreserve
 			local cohort_rel_varlist "`cohort_rel_varlist' `n`l'_`yy''"
 		}
 	}
-// 	dis "`cohort_rel_varlist'"
 	
+	* Check if use has reghdfe installed
 	capture reghdfe, version 
 	if _rc != 0 {
 		di as err "Error: must have reghdfe installed"
 		di as err "To install, from within Stata type " _c
-		di in smcl "{stata ssc install hdfe :ssc install reghdfe}"
+		di in smcl "{stata ssc install reghdfe :ssc install reghdfe}"
 					exit 601
 	}
+	
+	* Estimate the interacted regression
 	tempname evt_bb b V
-
 	qui reghdfe `lhs'  `cohort_rel_varlist' `wt' if `touse', absorb(`absorb') vce(`vce') nocons
 	mat `b' = e(b)
 	mat `V' = e(V)
+	* Convert the delta estimate vector to a matrix where each column is a relative time
 	local end = 0
 	forval i = 1/`nrel_times' {
 		local start = `end'+1
@@ -99,53 +96,42 @@ program define eventstudyinteract, eclass sortpreserve
 	}
 	mat `evt_bb' = `evt_bb''
 	matrix colnames `evt_bb' =  `nvarlist'
-// 	mat list `evt_bb'
-// 	mat list `V'
 
-	* Take weighted average
-	tempname U w delta b_iw wlong VV V_iw se_iw nc nr
-				* Append the variance from cohort share estimation
-			tempname Vshare Vshare_evt share_idx Sigma_l ii
-			mata: `w' = st_matrix("`ff_w'")
-			mata: `delta' = st_matrix("`evt_bb'")
-			mata: `b_iw' = colsum(`w':* `delta')
-			mata: st_matrix("`b_iw'", `b_iw')
-			* VCV from the interacted regression
-			mata: `VV' = st_matrix("`V'")
-			mata: `nc' = rows(`w')
-			mata: `nr' = cols(`w')
-			* Initialize the VCV
-			mata: `wlong' = `w'':*J(1,`nc',e(1,`nr')')
-			mata: `wlong'
-			forval i=2/`nrel_times' {
-			display `i'
-				mata: `wlong' = (`wlong', `w'':*J(1,`nc',e(`i',`nr')'))
-			}
-// 			mata: for (i=2; i<=`nrel_times' ; i++) {`wlong' = (`wlong', `w'':*J(1,`ncohort',e(i,`nrel_times')'))}
-// 			mata: `wlong'
-// 			mata: `VV'
-			mata: `V_iw' = diagonal(`wlong'*`VV'*`wlong'')
-			mata: `Vshare' = st_matrix("`Sigma_ff'")
-			mata: `Sigma_l' = J(0,0,.)
-			mata: `share_idx' = range(0,(`nc'-1)*`nr',`nr')
-// 			mata: `delta'
-// 			mata: `share_idx'
-// 			mata: `Vshare'
-			forval i=1/`nrel_times' {
-						display `i'
-
-				mata: `Vshare_evt' = `Vshare'[`share_idx':+`i', `share_idx':+`i']
-				mata: `Vshare_evt'
-				mata: (`delta'[,`i'])'*`Vshare_evt'*(`delta'[,`i'])
-				mata: `V_iw'[`i'] = `V_iw'[`i'] + (`delta'[,`i'])'*`Vshare_evt'*(`delta'[,`i'])
-				mata: `Sigma_l' = blockdiag(`Sigma_l',`Vshare_evt')
-			}
-			mata: `Sigma_l'
-			mata: st_matrix("`Sigma_l'", `Sigma_l')
-			mata: st_matrix("`V_iw'", `V_iw')
-// 			mata: `se_iw'
-			mata: `se_iw' = sqrt(`V_iw')'
-			mata: st_matrix("`se_iw'", `se_iw')
+	* Take weighted average for IW estimators
+	tempname w delta b_iw nc nr
+	mata: `w' = st_matrix("`ff_w'")
+	mata: `delta' = st_matrix("`evt_bb'")
+	mata: `b_iw' = colsum(`w':* `delta')
+	mata: st_matrix("`b_iw'", `b_iw')
+	mata: `nc' = rows(`w')
+	mata: `nr' = cols(`w')
+	
+	* Ptwise variance from cohort share estimation and interacted regression
+	tempname VV  wlong V_iw se_iw Vshare Vshare_evt share_idx Sigma_l
+	
+	* VCV from the interacted regression
+	mata: `VV' = st_matrix("`V'")
+	mata: `wlong' = `w'':*J(1,`nc',e(1,`nr')') // create a "Toeplitz" matrix convolution
+	forval i=2/`nrel_times' {
+		mata: `wlong' = (`wlong', `w'':*J(1,`nc',e(`i',`nr')'))
+	}
+	mata: `V_iw' = diagonal(`wlong'*`VV'*`wlong'')
+	
+	* VCV from cohort share estimation
+	mata: `Vshare' = st_matrix("`Sigma_ff'")
+	mata: `Sigma_l' = J(0,0,.)
+	mata: `share_idx' = range(0,(`nc'-1)*`nr',`nr')
+	forval i=1/`nrel_times' {
+		mata: `Vshare_evt' = `Vshare'[`share_idx':+`i', `share_idx':+`i']
+		mata: `V_iw'[`i'] = `V_iw'[`i'] + (`delta'[,`i'])'*`Vshare_evt'*(`delta'[,`i'])
+		mata: `Sigma_l' = blockdiag(`Sigma_l',`Vshare_evt')
+	}
+	mata: st_matrix("`Sigma_l'", `Sigma_l')
+	mata: st_matrix("`V_iw'", `V_iw')
+	
+	mata: `se_iw' = sqrt(`V_iw')'
+	mata: st_matrix("`se_iw'", `se_iw')
+	mata: mata drop `b_iw' `VV' `nc' `nr' `w' `wlong' `Vshare' `share_idx' `delta' `Vshare_evt' `Sigma_l' `V_iw' `se_iw'
 	
 	matrix colnames `b_iw' =  `nvarlist'
 	matrix colnames `se_iw' =  `nvarlist'
@@ -159,6 +145,7 @@ program define eventstudyinteract, eclass sortpreserve
 	mat list `se_iw'
 	
 end	
+
 
 
 // exclude the last cohort because it will be used as the control units
