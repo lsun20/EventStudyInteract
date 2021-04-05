@@ -167,7 +167,7 @@ Heterogeneous Treatment Effects
 {p_end}
 
 {marker citation}{...}
-{title:Citation of eventstudyinteract}
+{title:Citation and Installation of eventstudyinteract}
 
 {pstd}{opt eventstudyinteract} is not an official Stata command. It is a free contribution
 to the research community, like a paper. Please cite it as such: {p_end}
@@ -175,7 +175,13 @@ to the research community, like a paper. Please cite it as such: {p_end}
 {phang}Sun, L., 2021.
 eventstudyinteract: interaction weighted estimator for event study.
 {browse "https://github.com/lsun20/eventstudyinteract":https://github.com/lsun20/eventstudyinteract}.
- 
+
+{pstd}{opt eventstudyinteract} can be installed easily via the {helpb github} package, which is available on 
+{browse "https://github.com/haghish/github":https://github.com/haghish/github}. {p_end}
+
+{phang2}. {stata github install lsun20/eventstudyinteract }{p_end}
+{phang2}. {stata github update eventstudyinteract }{p_end}
+
 {marker author}{...}
 {title:Author}
 
