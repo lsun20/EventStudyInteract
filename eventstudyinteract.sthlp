@@ -38,7 +38,8 @@ Specify the last period to exclude in {opth if} when all cohorts have been treat
 The syntax is similar to {helpb reghdfe} such as absorb and vce, but controls other than the relative time indicators need to be specified separately
 
 {synopt :{opth cohort(varname)}}numerical variable that corresponds to cohort (see {help eventstudyinteract##by_notes:important notes below}){p_end}
-{synopt :{opth control_cohort(varname)}}numerical variable that corresponds to last cohort{p_end}
+{synopt :{opth control_cohort(varname)}}numerical variable that corresponds to the control cohort, which can be never-treated units or last-treated units.
+If using last-treated unit as control cohort, exclude the time periods when the last cohort receives treatment. {p_end}
 
 {pstd}
 {opt eventstudyinteract} requires {helpb avar} (Baum and Schaffer, 2013) and {helpb reghdfe} (Sergio, 2017) to be installed.
@@ -78,30 +79,26 @@ see {help weight}.
 {title:Description}
 
 {pstd}
-{opt eventstudyinteract} estimate weights underlying two-way fixed effects regressions with relative time indicators, 
-It is optimized for speed in large panel datasets thanks to {helpb hdfe}.
+To estimate the dynamic effects of an absorbing treatment, researchers often use two-way fixed effects regressions that include leads and lags of the treatment (event study specification). Units are categorized into different cohorts based on their initial treatment timing. Sun and Abraham (2020) show the coefficients in this event study specification can be written as a linear combination of cohort-specific effects from both its own relative period and other relative periods.  
+They show this specification is not robust to treatment effects heterogeneity and propose the interaction weighted estimator.
 
 {pstd}
-To estimate the dynamic effects of an absorbing treatment, researchers often use two-way fixed effects regressions that include leads and lags of the treatment (event study specification). Units are categorized into different cohorts based on their initial treatment timing. Sun and Abraham (2020) show the coefficients in this event study specification can be written as a linear combination of cohort-specific effects from both its own relative period and other relative periods. 
-{opt eventstudyinteract} is a Stata module that estimates these weights for any given event study specification.  
+{opt eventstudyinteract} implements the interaction weighted estimators for event studies, 
+It is optimized for speed in large panel datasets thanks to {helpb reghdfe}.
 
 {pstd}
-For each relative time indicator specified in {it:rel_time_list}, {opt eventstudyinteract} estimates the weights 
-underlying the linear combination of treatment effects in its associated coefficients using
-an auxiliary regression. It provides built-in options to control for fixed effects and covariates
-(see {help eventstudyinteract##syntax:Controls}).    {cmd:eventstudyinteract} exports these weights to a spreadsheet that can be analyzed separately.
- This spreadsheet also contains the cohort and relative time each weight corresponds to, with headers as specified in {opt cohort()} and {opt rel_time()}.
-
+For each relative time indicator specified in {it:rel_time_list}, {opt eventstudyinteract} estimates the IW estimator for the treatment effect associated with the given relative time. It provides built-in options to control for fixed effects and covariates
+(see {help eventstudyinteract##syntax:Controls}).    
 
 {dlgtab:Main}
 
 {marker by_notes}{...}
-{phang}{opth cohort(varname)} is a categorical varaible that contains the   initial treatment timing of each unit.
+{phang}{opth cohort(varname)} is a categorical varaible that contains the initial treatment timing of each unit.
 
-{phang}{opth rel_time(varname)} is a categorical varaible that contains the the relative time for each unit at each calendar time.
+{phang}{opth control_cohort(varname)} is an indicator varaible that is equal to one if the cohort is last treated or never treated.
 
 {pmore}
-Users should shape their dataset to a long format where each observation is at the unit-time level. Users should prepare the cohort and relative time variables as illustrated in the example. 
+Users should shape their dataset to a long format where each observation is at the unit-time level. Users should prepare the cohort and control cohort variables as illustrated in the example. 
  
 {marker examples}{...}
 {title:Examples}
@@ -123,19 +120,20 @@ Users should shape their dataset to a long format where each observation is at t
 {phang2}. {stata gen g1 = ry == 1}{p_end}
 {phang2}. {stata gen g2 = ry == 2}{p_end}
 
-{pstd} For the coefficient associate with each of the above relative time indicators in a two-way fixed effects regression, we can estimate the weights and export to a spreadsheet "weights.xlsx".{p_end}
-{phang2}. {stata eventstudyinteract g_2 g0 g1 g2, controls(i.idcode i.year) cohort(first_union) rel_time(ry) saveweights("weights") }{p_end}
- 
- 
-{pstd} To plot the weights underlying the coefficient associate with, e.g.,  relative time indicator lead=2, you may try {p_end}
-{phang2}. {stata import excel "weights.xlsx", clear firstrow}{p_end}
-{phang2}. {stata keep g_2 first_union ry}{p_end}
-{phang2}. {stata reshape wide g_2, i(ry) j(first_union)}{p_end}
-{phang2}. {stata graph twoway line g_2* ry}{p_end}
+{pstd} We form the control cohort with individuals that never unionized.{p_end}
+{phang2}. {stata gen never_union = (first_union == .)}{p_end}
 
-{pstd} You may also check the weights have properties discussed in the paper: {p_end}
-{phang2}. {stata egen w_sum = rowtotal(g_2*)}{p_end}
- 
+{pstd} We estimate the dynamic effect on log wage associated with each relative time.{p_end}
+{phang2}. {stata eventstudyinteract ln_wage g_2 g0 g1 g2, cohort(first_union) control_cohort(never_union) covariates(collgrad south) absorb(i.idcode i.year) vce(cluster idcode) }{p_end}
+
+
+{pstd} Alternatively, we form the control cohort with individuals that were unionized last.{p_end}
+{phang2}. {stata gen last_union = (first_union == 88)}{p_end}
+
+{pstd} We estimate the dynamic effect on log wage associated with each relative time.{p_end}
+{phang2}. {stata eventstudyinteract ln_wage g_2 g0 g1 g2 if first_union != . & year < 88, cohort(first_union) control_cohort(last_union) covariates(collgrad south) absorb(i.idcode i.year) vce(cluster idcode) }{p_end}
+
+
 {marker acknowledgements}{...}
 {title:Acknowledgements}
   

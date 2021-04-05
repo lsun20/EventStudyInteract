@@ -14,11 +14,17 @@ program define eventstudyinteract, eclass sortpreserve
 	* Parse the dependent variable
 	local lhs: word 1 of `varlist'
 	local rel_time_list: list varlist - lhs
-	* Convert the varlist of relative time indicators to nvarlist
-	local nvarlist ""
+	* Convert the varlist of relative time indicators to nvarlist 
+	local nvarlist "" // copies of relative time indicators with control cohort set to zero
+	local dvarlist "" // for display
 	foreach l of varlist `rel_time_list' {
-		local nvarlist "`nvarlist' `l'"
+		local dvarlist "`dvarlist' `l'"
+		tempname n`l'
+		qui gen `n`l'' = `l'
+		qui replace `n`l'' = 0 if  `control_cohort' == 1
+		local nvarlist "`nvarlist' `n`l''"
 	}	
+
 	* Get cohort count  and count of relative time
 	qui levelsof `cohort', local(cohort_list) 
  	local nrel_times: word count `nvarlist' 
@@ -52,25 +58,31 @@ program define eventstudyinteract, eclass sortpreserve
 	}
 	
 	* Get VCV estimate for the cohort shares using avar
+	* In case users have not set relative time indicators to zero for control cohort
+	* Manually restrict the sample to non-control cohort
 	tempname XX Sxx Sxxi S KSxxi Sigma_ff
-	mat accum `XX' = `nvarlist' if  `touse' & `control_cohort' == 0 , nocons
+	mat accum `XX' = `nvarlist' if  `touse' & `control_cohort' == 0, nocons
 	mat `Sxx' = `XX'*1/r(N)
     mat `Sxxi' = syminv(`Sxx')
-	qui avar (`nresidlist') (`nvarlist')  if `touse' & `control_cohort' == 0 , nocons robust
+	qui avar (`nresidlist') (`nvarlist')  if `touse' & `control_cohort' == 0, nocons robust
 	mat `S' = r(S)
     mat `KSxxi' = I(`ncohort')#`Sxxi'
     mat `Sigma_ff' = `KSxxi'*`S'*`KSxxi'*1/r(N)
+	// Note that the normalization is slightly different from the paper
+	// The scaling factor is 1/N for N the obs of cross-sectional units
+	// But here estimates are on the panel, which is why it is 1/NT instead
+	// Should cancel out for balanced panel, but unbalanced panel is a TODO
 	
 	* Prepare interaction terms for the interacted regression
 	local cohort_rel_varlist ""
-	foreach l of varlist `rel_time_list' {
+	foreach l of varlist `nvarlist' {
 		foreach yy of local cohort_list {
 			tempvar n`l'_`yy'
 			qui gen `n`l'_`yy''  = (`cohort' == `yy') * `l'
 			local cohort_rel_varlist "`cohort_rel_varlist' `n`l'_`yy''"
 		}
 	}
-	
+
 	* Check if use has reghdfe installed
 	capture reghdfe, version 
 	if _rc != 0 {
@@ -107,7 +119,7 @@ program define eventstudyinteract, eclass sortpreserve
 	mata: `nr' = cols(`w')
 	
 	* Ptwise variance from cohort share estimation and interacted regression
-	tempname VV  wlong V_iw V_iw_diag Vshare Vshare_evt share_idx Sigma_l
+	tempname VV  wlong V_iw V_iw_diag 
 	
 	* VCV from the interacted regression
 	mata: `VV' = st_matrix("`V'")
@@ -118,6 +130,7 @@ program define eventstudyinteract, eclass sortpreserve
 	mata: `V_iw' = diagonal(`wlong'*`VV'*`wlong'')
 	
 	* VCV from cohort share estimation
+	tempname Vshare Vshare_evt share_idx Sigma_l
 	mata: `Vshare' = st_matrix("`Sigma_ff'")
 	mata: `Sigma_l' = J(0,0,.)
 	mata: `share_idx' = range(0,(`nc'-1)*`nr',`nr')
@@ -132,10 +145,10 @@ program define eventstudyinteract, eclass sortpreserve
 	
 	mata: `V_iw_diag' = diag(`V_iw')
 	mata: st_matrix("`V_iw_diag'", `V_iw_diag')
-	mata: mata drop `b_iw' `VV' `nc' `nr' `w' `wlong' `Vshare' `share_idx' `delta' `Vshare_evt' `Sigma_l' `V_iw' `V_iw_diag'
+	mata: mata drop `b_iw' `VV' `nc' `nr' `w' `wlong' `Vshare' `share_idx' `delta' `Vshare_evt' `Sigma_l' `V_iw' `V_iw_diag' 
 	
-	matrix colnames `b_iw' =  `nvarlist'
-	matrix colnames `V_iw' =  `nvarlist'
+	matrix colnames `b_iw' =  `dvarlist'
+	matrix colnames `V_iw' =  `dvarlist'
 
 	ereturn matrix b_iw  `b_iw' 
 	ereturn matrix V_iw `V_iw'
@@ -145,18 +158,34 @@ program define eventstudyinteract, eclass sortpreserve
 	_coef_table , bmatrix(e(b_iw)) vmatrix(`V_iw_diag')
 
 end	
-
-
-
-// exclude the last cohort because it will be used as the control units
-// foreach vv of varlist evt_time_* {
-// 	replace `vv' = 0 if wave_hosp == 11
-// }
+//
+// * Load the HRS sample
+// use HRS_long.dta, clear
+// drop if wave < 7 // keep a balanced sample for wave 7-11
+// bys hhidpn: gen N = _N
+// keep if N == 5
+// bys hhidpn: egen flag = min(evt_time)
+// drop if flag >= 0 & flag != . // drop those first hospitalization happened before or during wave 7
+// drop if flag == . 
+// drop flag
+// bys hhidpn: egen wave_hosp_copy = min(wave_hosp) // fill in the wave of index hosp within an hhidpn
+// replace wave_hosp = wave_hosp_copy
+// drop wave_hosp_copy
+// keep if ever_hospitalized // keep a sample of individuals who were ever hospitalized wave 8-11
+// * Generate calendar and event time and cohort dummies
+// xi i.wave
+// tab evt_time, gen(evt_time_)
+// tab wave_hosp, gen(wave_hosp_)
+//
+// keep if age_hosp <= 59
+//
+// * Exclude the last cohort because it will be used as the control units
 // gen wave_hosp_11 = wave_hosp == 11
-
-// Replicate HRS example
-eventstudyinteract oop_spend evt_time_2-evt_time_3 evt_time_5-evt_time_8 if ever_hospitalized & wave < 11, ///
-	cohort(wave_hosp) control_cohort(wave_hosp_11) absorb(_Iwave_* hhidpn) vce(cluster hhidpn)
-
-eventstudyinteract riearnsemp evt_time_2-evt_time_3 evt_time_5-evt_time_8 if ever_hospitalized & wave < 11, ///
-	cohort(wave_hosp) control_cohort(wave_hosp_11) absorb(_Iwave_* hhidpn) vce(cluster hhidpn)
+//
+//
+// // Replicate HRS example
+// eventstudyinteract oop_spend evt_time_2-evt_time_3 evt_time_5-evt_time_8 if ever_hospitalized & wave < 11, ///
+// 	cohort(wave_hosp) control_cohort(wave_hosp_11) absorb(_Iwave_* hhidpn) vce(cluster hhidpn)
+//
+// eventstudyinteract riearnsemp evt_time_2-evt_time_3 evt_time_5-evt_time_8 if ever_hospitalized & wave < 11, ///
+// 	cohort(wave_hosp) control_cohort(wave_hosp_11) absorb(_Iwave_* hhidpn) vce(cluster hhidpn)
