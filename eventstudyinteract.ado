@@ -94,7 +94,7 @@ program define eventstudyinteract, eclass sortpreserve
 	
 	* Estimate the interacted regression
 	tempname evt_bb b V
-	qui reghdfe `lhs'  `cohort_rel_varlist' `wt' if `touse', absorb(`absorb') vce(`vce') nocons
+	qui reghdfe `lhs'  `cohort_rel_varlist' `wt' if `touse', absorb(`absorb') vce(`vce')
 	mat `b' = e(b)
 	mat `V' = e(V)
 	* Convert the delta estimate vector to a matrix where each column is a relative time
@@ -123,6 +123,7 @@ program define eventstudyinteract, eclass sortpreserve
 	
 	* VCV from the interacted regression
 	mata: `VV' = st_matrix("`V'")
+	mata: `VV' = `VV'[1..`nr'*`nc',1..`nr'*`nc'] // in case reghdfe reports _cons
 	mata: `wlong' = `w'':*J(1,`nc',e(1,`nr')') // create a "Toeplitz" matrix convolution
 	forval i=2/`nrel_times' {
 		mata: `wlong' = (`wlong', `w'':*J(1,`nc',e(`i',`nr')'))
