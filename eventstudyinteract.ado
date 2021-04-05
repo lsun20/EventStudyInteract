@@ -107,7 +107,7 @@ program define eventstudyinteract, eclass sortpreserve
 	mata: `nr' = cols(`w')
 	
 	* Ptwise variance from cohort share estimation and interacted regression
-	tempname VV  wlong V_iw se_iw Vshare Vshare_evt share_idx Sigma_l
+	tempname VV  wlong V_iw V_iw_diag Vshare Vshare_evt share_idx Sigma_l
 	
 	* VCV from the interacted regression
 	mata: `VV' = st_matrix("`V'")
@@ -126,24 +126,24 @@ program define eventstudyinteract, eclass sortpreserve
 		mata: `V_iw'[`i'] = `V_iw'[`i'] + (`delta'[,`i'])'*`Vshare_evt'*(`delta'[,`i'])
 		mata: `Sigma_l' = blockdiag(`Sigma_l',`Vshare_evt')
 	}
+	mata: `V_iw' = `V_iw''
 	mata: st_matrix("`Sigma_l'", `Sigma_l')
 	mata: st_matrix("`V_iw'", `V_iw')
 	
-	mata: `se_iw' = sqrt(`V_iw')'
-	mata: st_matrix("`se_iw'", `se_iw')
-	mata: mata drop `b_iw' `VV' `nc' `nr' `w' `wlong' `Vshare' `share_idx' `delta' `Vshare_evt' `Sigma_l' `V_iw' `se_iw'
+	mata: `V_iw_diag' = diag(`V_iw')
+	mata: st_matrix("`V_iw_diag'", `V_iw_diag')
+	mata: mata drop `b_iw' `VV' `nc' `nr' `w' `wlong' `Vshare' `share_idx' `delta' `Vshare_evt' `Sigma_l' `V_iw' `V_iw_diag'
 	
 	matrix colnames `b_iw' =  `nvarlist'
-	matrix colnames `se_iw' =  `nvarlist'
+	matrix colnames `V_iw' =  `nvarlist'
 
 	ereturn matrix b_iw  `b_iw' 
-	ereturn matrix V_iw `V_iw' 
+	ereturn matrix V_iw `V_iw'
 	ereturn matrix ff_w `ff_w'
 	ereturn matrix Sigma_l `Sigma_l'
 	* Display results	
-	mat list e(b_iw)
-	mat list `se_iw'
-	
+	_coef_table , bmatrix(e(b_iw)) vmatrix(`V_iw_diag')
+
 end	
 
 
@@ -154,7 +154,7 @@ end
 // }
 // gen wave_hosp_11 = wave_hosp == 11
 
-// Can replicate point estimates
+// Replicate HRS example
 eventstudyinteract oop_spend evt_time_2-evt_time_3 evt_time_5-evt_time_8 if ever_hospitalized & wave < 11, ///
 	cohort(wave_hosp) control_cohort(wave_hosp_11) absorb(_Iwave_* hhidpn) vce(cluster hhidpn)
 
