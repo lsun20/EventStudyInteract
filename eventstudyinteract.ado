@@ -94,7 +94,7 @@ program define eventstudyinteract, eclass sortpreserve
 	
 	* Estimate the interacted regression
 	tempname evt_bb b V
-	qui reghdfe `lhs'  `cohort_rel_varlist' `wt' if `touse', absorb(`absorb') vce(`vce')
+	qui reghdfe `lhs'  `cohort_rel_varlist'  `covariates' `wt' if `touse', absorb(`absorb') vce(`vce')
 	mat `b' = e(b)
 	mat `V' = e(V)
 	* Convert the delta estimate vector to a matrix where each column is a relative time

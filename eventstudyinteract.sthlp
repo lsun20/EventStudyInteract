@@ -11,8 +11,9 @@
 
 {p2colset 5 19 21 2}{...}
 {p2col :{hi:eventstudyinteract} {hline 2}}
-implements the interaction weighted estimator for an event study as an alternative to the canonical two-way fixed effects regressions 
-with relative time indicators (event study specifications) 
+implements the interaction weighted (IW) estimator for estimating dynamic treatment effects. Sun and Abraham (2020) propose this estimator as an alternative to the canonical two-way fixed effects regressions 
+with relative time indicators. The estimator is implemented in three steps.  First, estimate the interacted regression with {helpb reghdfe}, where the interactions are between relative time indicators and cohort indicators.
+ Second, estimate the cohort shares underlying each relative time.  Third, take the weighted average of estimates from the first step, with weights set to the estimated cohort shares.
 {p_end}
 {p2colreset}{...}
  
@@ -25,7 +26,7 @@ with relative time indicators (event study specifications)
 [{cmd:,} {it:options}]
  
 {pstd}
-where {it:rel_time_list} is the list of relative time indicators as specified in your two-way fixed effects regression
+where {it:rel_time_list} is the list of relative time indicators as you would have included in the canonical two-way fixed effects regression
 {p_end}
 		{it:rel_time_1} [{it:rel_time_2} [...]]  
 
@@ -34,21 +35,23 @@ where {it:rel_time_list} is the list of relative time indicators as specified in
 {synoptline}
 {syntab :Main}
 {pstd}
-Specify the last period to exclude in {opth if} when all cohorts have been treated during the panel (see {help eventstudyinteract##by_notes:important notes below})
-The syntax is similar to {helpb reghdfe} such as absorb and vce, but controls other than the relative time indicators need to be specified separately
+The syntax is similar to {helpb reghdfe} in specifying fixed effects (with {help reghdfe##opt_absorb:absorb}) 
+and the type of standard error reported (with {help reghdfe##opt_vce:vcetype}).  Regressors other than the relative time indicators need to be specified separately in {opth covariate:s(varlist)}.
+Furthermore, it also requires the user to specify the cohort categories as well as which cohort is the control control (see {help eventstudyinteract##by_notes:important notes below}).  
+Note that Sun and Abraham (2020) only establish the validity of the IW estimators for balanced panel data. {opt eventstudyinteract} evaluates the IW estimators for unbalanced panel data as well.  
 
-{synopt :{opth cohort(varname)}}numerical variable that corresponds to cohort (see {help eventstudyinteract##by_notes:important notes below}){p_end}
-{synopt :{opth control_cohort(varname)}}numerical variable that corresponds to the control cohort, which can be never-treated units or last-treated units.
-If using last-treated unit as control cohort, exclude the time periods when the last cohort receives treatment. {p_end}
 
 {pstd}
 {opt eventstudyinteract} requires {helpb avar} (Baum and Schaffer, 2013) and {helpb reghdfe} (Sergio, 2017) to be installed.
-{opt eventstudyinteract} will prompt the user for installation of
-{helpb reghdfe} if necessary.
+{opt eventstudyinteract} will prompt the user for the installation of {helpb avar} and {helpb reghdfe} if necessary.
   
-{syntab :Controls}
-{synopt :{opth covariate:s(varlist)}}residualize the relative time indicators on covariates{p_end}
-{synopt :{opth absorb(varlist)}} fixed effects {p_end}
+{syntab :Options}
+{synopt :{opth cohort(varname)}}categorical variable that corresponds to cohort (see {help eventstudyinteract##by_notes:important notes below}){p_end}
+{synopt :{opth control_cohort(varname)}}binary variable that corresponds to the control cohort, which can be never-treated units or last-treated units.
+If using last-treated unit as control cohort, exclude the time periods when the last cohort receives treatment. {p_end}
+{synopt :{opth absorb(varlist)}}specifies unit and time fixed effects.{p_end}
+
+{synopt :{opth covariate:s(varlist)}}specify covariates that lend validity to the parallel trends assumption, i.e. covariates you would have included in the canonical two-way fixed effects regressions. {p_end}
 
 {syntab :VCE}
 {synopt :{opt vce}{cmd:(}{help reghdfe##opt_vce:vcetype} [{cmd:,}{it:opt}]{cmd:)}}{it:vcetype}
@@ -58,7 +61,7 @@ may be {opt un:adjusted} (default), {opt r:obust} or {opt cl:uster} {help fvvarl
 {syntab :Saved Output}
 {pstd}
 {opt eventstudyinteract} reports the IW estimates and standard error.  
-Since the interacted regression is performed by {helpb reghdfe}, it keeps all most e() results.  
+Since the interacted regression is performed by {helpb reghdfe}, it keeps all e() results from  {helpb reghdfe}.  
 In addition, it stores the following in {cmd:e()}:
 
 {synoptset 24 tabbed}{...}
