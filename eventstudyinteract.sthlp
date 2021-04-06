@@ -26,14 +26,11 @@ with relative time indicators. The estimator is implemented in three steps.  Fir
 [{cmd:,} {it:options}]
  
 {pstd}
-where {it:rel_time_list} is the list of relative time indicators as you would have included in the canonical two-way fixed effects regression
-{p_end}
+where {it:rel_time_list} is the list of relative time indicators as you would have included in the canonical two-way fixed effects regression, e.g.,
+{p_end} 
 		{it:rel_time_1} [{it:rel_time_2} [...]]  
 
 {synoptset 26 tabbed}{...}
-{synopthdr :options}
-{synoptline}
-{syntab :Main}
 {pstd}
 The syntax is similar to {helpb reghdfe} in specifying fixed effects (with {help reghdfe##opt_absorb:absorb}) 
 and the type of standard error reported (with {help reghdfe##opt_vce:vcetype}).  Regressors other than the relative time indicators need to be specified separately in {opth covariate:s(varlist)}.
@@ -43,7 +40,10 @@ Note that Sun and Abraham (2020) only establish the validity of the IW estimator
 
 {pstd}
 {opt eventstudyinteract} requires {helpb avar} (Baum and Schaffer, 2013) and {helpb reghdfe} (Sergio, 2017) to be installed.
-Installation of {opt eventstudyinteract} will install{helpb avar} and {helpb reghdfe} (and its dependencies) from ssc if necessary. 
+Installation of {opt eventstudyinteract} will install{helpb avar} and {helpb reghdfe} (and its dependencies) from ssc if necessary. {p_end}
+
+{synopthdr :options}
+{synoptline}
 {syntab :Options}
 {synopt :{opth cohort(varname)}}categorical variable that corresponds to cohort (see {help eventstudyinteract##by_notes:important notes below}){p_end}
 {synopt :{opth control_cohort(varname)}}binary variable that corresponds to the control cohort, which can be never-treated units or last-treated units.
