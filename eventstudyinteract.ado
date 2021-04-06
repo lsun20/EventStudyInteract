@@ -49,13 +49,13 @@ program define eventstudyinteract, eclass sortpreserve
 	matrix colnames `ff_w' =  `nvarlist'
 	
 	* Check if use has avar installed
-	capture avar, version 
-	if _rc != 0 {
-		di as err "Error: must have avar installed"
-		di as err "To install, from within Stata type " _c
-		di in smcl "{stata ssc install avar :ssc install avar}"
-					exit 601
-	}
+// 	capture avar, version 
+// 	if _rc != 0 {
+// 		di as err "Error: must have avar installed"
+// 		di as err "To install, from within Stata type " _c
+// 		di in smcl "{stata ssc install avar :ssc install avar}"
+// 					exit 601
+// 	}
 	
 	* Get VCV estimate for the cohort shares using avar
 	* In case users have not set relative time indicators to zero for control cohort
@@ -84,13 +84,13 @@ program define eventstudyinteract, eclass sortpreserve
 	}
 
 	* Check if use has reghdfe installed
-	capture reghdfe, version 
-	if _rc != 0 {
-		di as err "Error: must have reghdfe installed"
-		di as err "To install, from within Stata type " _c
-		di in smcl "{stata ssc install reghdfe :ssc install reghdfe}"
-					exit 601
-	}
+// 	capture reghdfe, version 
+// 	if _rc != 0 {
+// 		di as err "Error: must have reghdfe installed"
+// 		di as err "To install, from within Stata type " _c
+// 		di in smcl "{stata ssc install reghdfe :ssc install reghdfe}"
+// 					exit 601
+// 	}
 	
 	* Estimate the interacted regression
 	tempname evt_bb b V
