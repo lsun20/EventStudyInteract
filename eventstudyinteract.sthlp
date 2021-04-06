@@ -43,8 +43,7 @@ Note that Sun and Abraham (2020) only establish the validity of the IW estimator
 
 {pstd}
 {opt eventstudyinteract} requires {helpb avar} (Baum and Schaffer, 2013) and {helpb reghdfe} (Sergio, 2017) to be installed.
-{opt eventstudyinteract} will prompt the user for the installation of {helpb avar} and {helpb reghdfe} if necessary.  Note that {helpb reghdfe} might further prompt the installation of its dependencies.
-  
+Installation of {opt eventstudyinteract} will install{helpb avar} and {helpb reghdfe} (and its dependencies) from ssc if necessary. 
 {syntab :Options}
 {synopt :{opth cohort(varname)}}categorical variable that corresponds to cohort (see {help eventstudyinteract##by_notes:important notes below}){p_end}
 {synopt :{opth control_cohort(varname)}}binary variable that corresponds to the control cohort, which can be never-treated units or last-treated units.
