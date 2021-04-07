@@ -45,17 +45,7 @@ program define eventstudyinteract, eclass sortpreserve
 		qui predict double `resid`yy'', resid
 		local nresidlist "`nresidlist' `resid`yy''"
 	}
- 	matrix rownames `ff_w' = `cohort_list'
-	matrix colnames `ff_w' =  `nvarlist'
-	
-	* Check if use has avar installed
-// 	capture avar, version 
-// 	if _rc != 0 {
-// 		di as err "Error: must have avar installed"
-// 		di as err "To install, from within Stata type " _c
-// 		di in smcl "{stata ssc install avar :ssc install avar}"
-// 					exit 601
-// 	}
+ 
 	
 	* Get VCV estimate for the cohort shares using avar
 	* In case users have not set relative time indicators to zero for control cohort
@@ -74,7 +64,7 @@ program define eventstudyinteract, eclass sortpreserve
 	// Should cancel out for balanced panel, but unbalanced panel is a TODO
 	
 	* Prepare interaction terms for the interacted regression
-	local cohort_rel_varlist ""
+	local cohort_rel_varlist "" // hold the temp varnames	
 	foreach l of varlist `nvarlist' {
 		foreach yy of local cohort_list {
 			tempvar n`l'_`yy'
@@ -82,19 +72,16 @@ program define eventstudyinteract, eclass sortpreserve
 			local cohort_rel_varlist "`cohort_rel_varlist' `n`l'_`yy''"
 		}
 	}
-
-	* Check if use has reghdfe installed
-// 	capture reghdfe, version 
-// 	if _rc != 0 {
-// 		di as err "Error: must have reghdfe installed"
-// 		di as err "To install, from within Stata type " _c
-// 		di in smcl "{stata ssc install reghdfe :ssc install reghdfe}"
-// 					exit 601
-// 	}
-	
+	local bcohort_rel_varlist "" // hold the interaction varnames
+	foreach l of varlist `rel_time_list'  {
+		foreach yy of local cohort_list {
+				local bcohort_rel_varlist "`bcohort_rel_varlist' `l'_x_`yy'"
+		}
+	}
 	* Estimate the interacted regression
 	tempname evt_bb b V
 	qui reghdfe `lhs'  `cohort_rel_varlist'  `covariates' `wt' if `touse', absorb(`absorb') vce(`vce')
+	local bcohort_rel_varlist "`bcohort_rel_varlist' `covariates'" // TODO: does not catch the constant term.
 	mat `b' = e(b)
 	mat `V' = e(V)
 	* Convert the delta estimate vector to a matrix where each column is a relative time
@@ -107,7 +94,6 @@ program define eventstudyinteract, eclass sortpreserve
 
 	}
 	mat `evt_bb' = `evt_bb''
-	matrix colnames `evt_bb' =  `nvarlist'
 
 	* Take weighted average for IW estimators
 	tempname w delta b_iw nc nr
@@ -150,7 +136,12 @@ program define eventstudyinteract, eclass sortpreserve
 	
 	matrix colnames `b_iw' =  `dvarlist'
 	matrix colnames `V_iw' =  `dvarlist'
+	matrix rownames `ff_w' =  `cohort_list'
+	matrix colnames `ff_w' =  `dvarlist'
+	matrix colnames `evt_bb' =  `dvarlist'
+	matrix rownames `evt_bb' =  `cohort_list'
 
+	ereturn matrix b_interact `evt_bb'
 	ereturn matrix b_iw  `b_iw' 
 	ereturn matrix V_iw `V_iw'
 	ereturn matrix ff_w `ff_w'

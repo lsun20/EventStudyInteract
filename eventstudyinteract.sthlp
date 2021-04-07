@@ -11,9 +11,14 @@
 
 {p2colset 5 19 21 2}{...}
 {p2col :{hi:eventstudyinteract} {hline 2}}
-implements the interaction weighted (IW) estimator for estimating dynamic treatment effects. Sun and Abraham (2020) propose this estimator as an alternative to the canonical two-way fixed effects regressions 
-with relative time indicators. The estimator is implemented in three steps.  First, estimate the interacted regression with {helpb reghdfe}, where the interactions are between relative time indicators and cohort indicators.
- Second, estimate the cohort shares underlying each relative time.  Third, take the weighted average of estimates from the first step, with weights set to the estimated cohort shares.
+implements the interaction weighted (IW) estimator for the estimation of dynamic treatment effects. 
+To estimate the dynamic effects of an absorbing treatment, researchers often use two-way fixed effects regressions that include leads and lags of the treatment (event study specification). 
+Units are categorized into different cohorts based on their initial treatment timing.  
+Sun and Abraham (2020) propose this estimator as an alternative to the event study specification. 
+The IW estimator is implemented in three steps.  
+First, estimate the interacted regression with {helpb reghdfe}, where the interactions are between relative time indicators and cohort indicators.
+Second, estimate the cohort shares underlying each relative time.  
+Third, take the weighted average of estimates from the first step, with weights set to the estimated cohort shares.
 {p_end}
 {p2colreset}{...}
  
@@ -68,6 +73,7 @@ In addition, it stores the following in {cmd:e()}:
 {syntab:Matrices}
 {synopt:{cmd:e(b_iw)}}IW estimate vector{p_end}
 {synopt:{cmd:e(V_iw)}}pointwise variance estimate of the IW estimators{p_end}
+{synopt:{cmd:e(b_interact)}} Each column vector contains estimates of cohort-specific effect for the given relative time. {p_end}
 {synopt:{cmd:e(ff_w)}} Each column vector contains estimates of cohort shares underlying the given relative time. {p_end}
 {synopt:{cmd:e(Sigma_l)}}variance estimate of the cohort share estimators{p_end}
 
@@ -122,18 +128,32 @@ Users should shape their dataset to a long format where each observation is at t
 {phang2}. {stata gen g1 = ry == 1}{p_end}
 {phang2}. {stata gen g2 = ry == 2}{p_end}
 
-{pstd} We form the control cohort with individuals that never unionized.{p_end}
+{pstd} We take the control cohort to be individuals that never unionized.{p_end}
 {phang2}. {stata gen never_union = (first_union == .)}{p_end}
 
-{pstd} We estimate the dynamic effect on log wage associated with each relative time.{p_end}
-{phang2}. {stata eventstudyinteract ln_wage g_2 g0 g1 g2, cohort(first_union) control_cohort(never_union) covariates(collgrad south) absorb(i.idcode i.year) vce(cluster idcode) }{p_end}
+{pstd} We use the IW estimator to estimate the dynamic effect on log wage associated with each relative time.{p_end}
+{phang2}. {stata eventstudyinteract ln_wage g_2 g0 g1 g2, cohort(first_union) control_cohort(never_union) covariates(south) absorb(i.idcode i.year) vce(cluster idcode) }{p_end}
 
 
-{pstd} Alternatively, we form the control cohort with individuals that were unionized last.{p_end}
+{pstd} Alternatively, we can take the control cohort to be individuals that were unionized last.{p_end}
 {phang2}. {stata gen last_union = (first_union == 88)}{p_end}
 
-{pstd} We estimate the dynamic effect on log wage associated with each relative time.{p_end}
-{phang2}. {stata eventstudyinteract ln_wage g_2 g0 g1 g2 if first_union != . & year < 88, cohort(first_union) control_cohort(last_union) covariates(collgrad south) absorb(i.idcode i.year) vce(cluster idcode) }{p_end}
+{pstd} We use the IW estimator to estimate the dynamic effect on log wage associated with each relative time.{p_end}
+{phang2}. {stata eventstudyinteract ln_wage g_2 g0 g1 g2 if first_union != . & year < 88, cohort(first_union) control_cohort(last_union) covariates(south) absorb(i.idcode i.year) vce(cluster idcode) }{p_end}
+
+{pstd} We can look at the share of cohorts underlying the IW estimates for each relative time.{p_end}
+{phang2}. {stata matrix list e(ff_w) }{p_end}
+
+{pstd} We can look at the cohort-specific treatment effect estimates for each relative time.{p_end}
+{phang2}. {stata matrix list e(b_interact) }{p_end}
+
+{pstd} We can check that the IW estimates are weighted averages of the cohort-specific dynamic effect estimate 
+, weighted by the corresponding cohort share estimates.  Below is an example for g_2: {p_end}
+{phang2}. {stata matrix delta = e(b_interact)}{p_end}
+{phang2}. {stata matrix weight = e(ff_w)}{p_end}
+{phang2}. {stata matrix nu = delta[1...,1]'*weight[1...,1]}{p_end}
+{phang2}. {stata matrix list nu}{p_end}
+
 
 
 {marker acknowledgements}{...}
