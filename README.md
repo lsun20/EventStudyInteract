@@ -1,6 +1,6 @@
 # EventStudyInteract
 
-**eventstudyinteract** is a Stata package that implements the interaction weighted estimator for an event study.  Sun and Abraham (2020) propose this estimator as an alternative to the canonical two-way fixed effects regressions with relative time indicators.
+**eventstudyinteract** is a Stata package that implements the interaction weighted estimator for an event study.  Sun and Abraham (2020) propose this estimator as an alternative to the canonical two-way fixed effects regressions with relative time indicators.  Sun and Abraham (2020) prove this estimator is consistent even under heterogeneous treatment effects.  A similar estimator is proposed by Callaway and Sant?Anna (2020) and can potentially be more efficient. Therefore one can also use the R package `did` developed by Callaway and Sant?Anna (2020) to form the IW estimator.
 
 ## Installation
 **eventstudyinteract** can be installed easily via the `github` package, which is available on [https://github.com/haghish/github](https://github.com/haghish/github).  Specifically execute the following code in Stata:
