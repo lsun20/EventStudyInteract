@@ -12,9 +12,10 @@
 {p2colset 5 19 21 2}{...}
 {p2col :{hi:eventstudyinteract} {hline 2}}
 implements the interaction weighted (IW) estimator for the estimation of dynamic treatment effects. 
-To estimate the dynamic effects of an absorbing treatment, researchers often use two-way fixed effects regressions that include leads and lags of the treatment (event study specification). 
+To estimate the dynamic effects of an absorbing treatment, researchers often use two-way fixed effects (TWFE) regressions that include leads and lags of the treatment (event study specification). 
 Units are categorized into different cohorts based on their initial treatment timing.  
-Sun and Abraham (2020) propose this estimator as an alternative to the event study specification. 
+Sun and Abraham (2020) proposes this estimator as an alternative to the TWFE regression in the presence of treatment effects heterogeneous across cohorts. 
+Under treatment effects heterogeneity, the TWFE regression can result in estimates with uninterpretable weights, which can be assessed by the Stata module {helpb eventstudyweights}.
 The IW estimator is implemented in three steps.  
 First, estimate the interacted regression with {helpb reghdfe}, where the interactions are between relative time indicators and cohort indicators.
 Second, estimate the cohort shares underlying each relative time.  
@@ -40,7 +41,7 @@ where {it:rel_time_list} is the list of relative time indicators as you would ha
 The syntax is similar to {helpb reghdfe} in specifying fixed effects (with {help reghdfe##opt_absorb:absorb}) 
 and the type of standard error reported (with {help reghdfe##opt_vce:vcetype}).  Regressors other than the relative time indicators need to be specified separately in {opth covariate:s(varlist)}.
 Furthermore, it also requires the user to specify the cohort categories as well as which cohort is the control control (see {help eventstudyinteract##by_notes:important notes below}).  
-Note that Sun and Abraham (2020) only establish the validity of the IW estimators for balanced panel data. {opt eventstudyinteract} evaluates the IW estimators for unbalanced panel data as well.  
+Note that Sun and Abraham (2020) only establishes the validity of the IW estimators for balanced panel data. {opt eventstudyinteract} evaluates the IW estimators for unbalanced panel data as well.  
 
 
 {pstd}
@@ -122,11 +123,11 @@ Users should shape their dataset to a long format where each observation is at t
 {pstd}Code the relative time categorical variable.{p_end}
 {phang2}. {stata gen ry = year - first_union}{p_end}
 
-{pstd}Suppose we will later use a specification with lead=2 and lag=0,1,2 to estimate the dynamic effect of union status on income.  We first generate these relative time indicators.{p_end}
-{phang2}. {stata gen g_2 = ry == -2}{p_end}
+{pstd}Suppose we will later use a specification with lead<=2 and lag=0,1,>=2 to estimate the dynamic effect of union status on income.  We first generate these relative time indicators.{p_end}
+{phang2}. {stata gen g_2 = ry <= -2}{p_end}
 {phang2}. {stata gen g0 = ry == 0}{p_end}
 {phang2}. {stata gen g1 = ry == 1}{p_end}
-{phang2}. {stata gen g2 = ry == 2}{p_end}
+{phang2}. {stata gen g2 = ry >= 2}{p_end}
 
 {pstd} We take the control cohort to be individuals that never unionized.{p_end}
 {phang2}. {stata gen never_union = (first_union == .)}{p_end}
@@ -138,7 +139,8 @@ Users should shape their dataset to a long format where each observation is at t
 {pstd} Alternatively, we can take the control cohort to be individuals that were unionized last.{p_end}
 {phang2}. {stata gen last_union = (first_union == 88)}{p_end}
 
-{pstd} We use the IW estimator to estimate the dynamic effect on log wage associated with each relative time.{p_end}
+{pstd} If using the last-treated cohort as the control, be sure to restrict the analysis sample to be before 
+the treated periods for the last-treated cohort.{p_end}
 {phang2}. {stata eventstudyinteract ln_wage g_2 g0 g1 g2 if first_union != . & year < 88, cohort(first_union) control_cohort(last_union) covariates(south) absorb(i.idcode i.year) vce(cluster idcode) }{p_end}
 
 {pstd} We can look at the share of cohorts underlying the IW estimates for each relative time.{p_end}
