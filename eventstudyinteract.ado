@@ -150,34 +150,4 @@ program define eventstudyinteract, eclass sortpreserve
 	_coef_table , bmatrix(e(b_iw)) vmatrix(`V_iw_diag')
 
 end	
-//
-// * Load the HRS sample
-// use HRS_long.dta, clear
-// drop if wave < 7 // keep a balanced sample for wave 7-11
-// bys hhidpn: gen N = _N
-// keep if N == 5
-// bys hhidpn: egen flag = min(evt_time)
-// drop if flag >= 0 & flag != . // drop those first hospitalization happened before or during wave 7
-// drop if flag == . 
-// drop flag
-// bys hhidpn: egen wave_hosp_copy = min(wave_hosp) // fill in the wave of index hosp within an hhidpn
-// replace wave_hosp = wave_hosp_copy
-// drop wave_hosp_copy
-// keep if ever_hospitalized // keep a sample of individuals who were ever hospitalized wave 8-11
-// * Generate calendar and event time and cohort dummies
-// xi i.wave
-// tab evt_time, gen(evt_time_)
-// tab wave_hosp, gen(wave_hosp_)
-//
-// keep if age_hosp <= 59
-//
-// * Exclude the last cohort because it will be used as the control units
-// gen wave_hosp_11 = wave_hosp == 11
-//
-//
-// // Replicate HRS example
-// eventstudyinteract oop_spend evt_time_2-evt_time_3 evt_time_5-evt_time_8 if ever_hospitalized & wave < 11, ///
-// 	cohort(wave_hosp) control_cohort(wave_hosp_11) absorb(_Iwave_* hhidpn) vce(cluster hhidpn)
-//
-// eventstudyinteract riearnsemp evt_time_2-evt_time_3 evt_time_5-evt_time_8 if ever_hospitalized & wave < 11, ///
-// 	cohort(wave_hosp) control_cohort(wave_hosp_11) absorb(_Iwave_* hhidpn) vce(cluster hhidpn)
+
