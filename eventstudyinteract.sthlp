@@ -11,7 +11,7 @@
 
 {p2colset 5 19 21 2}{...}
 {p2col :{hi:eventstudyinteract} {hline 2}}
-implements the interaction weighted (IW) estimator for the estimation of dynamic treatment effects. 
+implements the interaction weighted (IW) estimator and constructs pointwise confidence interval for the estimation of dynamic treatment effects. 
 To estimate the dynamic effects of an absorbing treatment, researchers often use two-way fixed effects (TWFE) regressions that include leads and lags of the treatment (event study specification). 
 Units are categorized into different cohorts based on their initial treatment timing.  
 Sun and Abraham (2020) proposes this estimator as an alternative to the TWFE regression in the presence of treatment effects heterogeneous across cohorts. 
@@ -41,7 +41,7 @@ where {it:rel_time_list} is the list of relative time indicators as you would ha
 The syntax is similar to {helpb reghdfe} in specifying fixed effects (with {help reghdfe##opt_absorb:absorb}) 
 and the type of standard error reported (with {help reghdfe##opt_vce:vcetype}).  Regressors other than the relative time indicators need to be specified separately in {opth covariate:s(varlist)}.
 Furthermore, it also requires the user to specify the cohort categories as well as which cohort is the control control (see {help eventstudyinteract##by_notes:important notes below}).  
-Note that Sun and Abraham (2020) only establishes the validity of the IW estimators for balanced panel data. {opt eventstudyinteract} evaluates the IW estimators for unbalanced panel data as well.  
+Note that Sun and Abraham (2020) only establishes the validity of the IW estimators for balanced panel data without covariates. {opt eventstudyinteract} evaluates the IW estimators for unbalanced panel data as well.  
 
 
 {pstd}
@@ -150,7 +150,10 @@ the treated periods for the last-treated cohort.{p_end}
 {phang2}. {stata matrix list e(b_interact) }{p_end}
 
 {pstd} We can check that the IW estimates are weighted averages of the cohort-specific dynamic effect estimate 
-, weighted by the corresponding cohort share estimates.  Below is an example for g_2: {p_end}
+, weighted by the corresponding cohort share estimates.  For example, the IW estimate associated with g_2 is {p_end}
+{phang2}. {stata matrix list e(b_iw)}{p_end}
+{pstd} which is the weighted average of cohort-specific treatment effect estimates, 
+with weights corresponding to the cohort share estimates: {p_end}
 {phang2}. {stata matrix delta = e(b_interact)}{p_end}
 {phang2}. {stata matrix weight = e(ff_w)}{p_end}
 {phang2}. {stata matrix nu = delta[1...,1]'*weight[1...,1]}{p_end}
