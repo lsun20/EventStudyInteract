@@ -46,7 +46,7 @@ Note that Sun and Abraham (2020) only establishes the validity of the IW estimat
 
 {pstd}
 {opt eventstudyinteract} requires {helpb avar} (Baum and Schaffer, 2013) and {helpb reghdfe} (Sergio, 2017) to be installed.
-Installation of {opt eventstudyinteract} will install{helpb avar} and {helpb reghdfe} (and its dependencies) from ssc if necessary. {p_end}
+Installation of {opt eventstudyinteract} will install {helpb avar} and {helpb reghdfe} (and its dependencies) from ssc if necessary. {p_end}
 
 {synopthdr :options}
 {synoptline}
@@ -123,25 +123,35 @@ Users should shape their dataset to a long format where each observation is at t
 {pstd}Code the relative time categorical variable.{p_end}
 {phang2}. {stata gen ry = year - first_union}{p_end}
 
-{pstd}Suppose we will later use a specification with lead<=2 and lag=0,1,>=2 to estimate the dynamic effect of union status on income.  We first generate these relative time indicators.{p_end}
-{phang2}. {stata gen g_2 = ry <= -2}{p_end}
-{phang2}. {stata gen g0 = ry == 0}{p_end}
-{phang2}. {stata gen g1 = ry == 1}{p_end}
-{phang2}. {stata gen g2 = ry >= 2}{p_end}
-
 {pstd} We take the control cohort to be individuals that never unionized.{p_end}
 {phang2}. {stata gen never_union = (first_union == .)}{p_end}
 
+{pstd}Suppose we will later use a specification with many leads and lags to estimate the dynamic effect of union status on income, 
+under the assumption that effects outside the lead and lag windows are zero.  {p_end}
+{pstd} We first generate these relative time indicators.{p_end}
+	{cmd:forvalues k = 18(-1)2 {c -(}}
+	{cmd:   gen g_`k' = ry == -`k'}
+	{cmd:{c )-}}
+	{cmd:forvalues k = 0/18 {c -(}}
+	{cmd:     gen g`k' = ry == `k'}
+	{cmd:{c )-}}
+	
 {pstd} We use the IW estimator to estimate the dynamic effect on log wage associated with each relative time.{p_end}
-{phang2}. {stata eventstudyinteract ln_wage g_2 g0 g1 g2, cohort(first_union) control_cohort(never_union) covariates(south) absorb(i.idcode i.year) vce(cluster idcode) }{p_end}
+{pstd} With many leads and lags, we need a large matrix size to hold intermediate estimates.{p_end}
+{phang2}. {stata set matsize 800 }{p_end}
+{phang2}. {stata eventstudyinteract ln_wage g_* g0-g18, cohort(first_union) control_cohort(never_union) covariates(south) absorb(i.idcode i.year) vce(cluster idcode) }{p_end}
 
+{pstd} Pre-treatment effects seem relatively constant, which might suggest binning the many leads. 
+TODO: current implementation of bins does not follow Sun and Abraham (2020) exactly due to coding challenge.  
+But it is valid if effects in the bin are constant for each cohort.{p_end}
+{phang2}. {stata gen g_l4 = ry <= -4}{p_end}
 
 {pstd} Alternatively, we can take the control cohort to be individuals that were unionized last.{p_end}
 {phang2}. {stata gen last_union = (first_union == 88)}{p_end}
 
 {pstd} If using the last-treated cohort as the control, be sure to restrict the analysis sample to be before 
 the treated periods for the last-treated cohort.{p_end}
-{phang2}. {stata eventstudyinteract ln_wage g_2 g0 g1 g2 if first_union != . & year < 88, cohort(first_union) control_cohort(last_union) covariates(south) absorb(i.idcode i.year) vce(cluster idcode) }{p_end}
+{phang2}. {stata eventstudyinteract ln_wage g_l4 g_3 g_2 g0-g18 if first_union != . & year < 88, cohort(first_union) control_cohort(last_union) covariates(south) absorb(i.idcode i.year) vce(cluster idcode) }{p_end}
 
 {pstd} We can look at the share of cohorts underlying the IW estimates for each relative time.{p_end}
 {phang2}. {stata matrix list e(ff_w) }{p_end}
@@ -150,7 +160,7 @@ the treated periods for the last-treated cohort.{p_end}
 {phang2}. {stata matrix list e(b_interact) }{p_end}
 
 {pstd} We can check that the IW estimates are weighted averages of the cohort-specific dynamic effect estimate 
-, weighted by the corresponding cohort share estimates.  For example, the IW estimate associated with g_2 is {p_end}
+, weighted by the corresponding cohort share estimates.  For example, the IW estimate associated with g_l4 is {p_end}
 {phang2}. {stata matrix list e(b_iw)}{p_end}
 {pstd} which is the weighted average of cohort-specific treatment effect estimates, 
 with weights corresponding to the cohort share estimates: {p_end}
