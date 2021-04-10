@@ -126,9 +126,13 @@ Users should shape their dataset to a long format where each observation is at t
 {pstd} We take the control cohort to be individuals that never unionized.{p_end}
 {phang2}. {stata gen never_union = (first_union == .)}{p_end}
 
-{pstd}Suppose we will later use a specification with many leads and lags to estimate the dynamic effect of union status on income, 
-under the assumption that effects outside the lead and lag windows are zero.  {p_end}
-{pstd} We first generate these relative time indicators.{p_end}
+{pstd} Check if there is a sufficient number of treated units for each relative time. 
+With very few units it might be better to bin the relative times and assume constant treatment effects within the bin. {p_end}
+{phang2}. {stata tab ry}{p_end}
+
+{pstd}We will consider the dynamic effect of union status on income. 
+We first generate these relative time indicators, and leave out the distant leads due to few observations.  
+Implicitly this assumes that effects outside the lead windows are zero.  {p_end}
 	{cmd:forvalues k = 18(-1)2 {c -(}}
 	{cmd:   gen g_`k' = ry == -`k'}
 	{cmd:{c )-}}
