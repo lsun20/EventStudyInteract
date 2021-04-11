@@ -1,3 +1,3 @@
-ssc install ftools
-ssc install avar 
-ssc install reghdfe
+capture ssc install ftools
+capture ssc install avar 
+capture ssc install reghdfe
