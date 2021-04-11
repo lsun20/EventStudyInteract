@@ -28,8 +28,9 @@ Third, take the weighted average of estimates from the first step, with weights 
 {p 8 15 2}
 {cmd:eventstudyinteract}
 {y} {rel_time_list} {ifin}
-{weight}
-[{cmd:,} {it:options}]
+{weight} {cmd:,} {opth a:bsorb(reghdfe##absvar:absvars)} {opth c:ohort(eventstudyinteract##cohort:variable)}
+            {opth c:ontrol_cohort(eventstudyinteract##cohort:variable)} 
+ [{it:options} {opth c:ovariates(eventstudyinteract##cohort:varlist)}]
  
 {pstd}
 where {it:rel_time_list} is the list of relative time indicators as you would have included in the canonical two-way fixed effects regression, e.g.,
@@ -37,9 +38,15 @@ where {it:rel_time_list} is the list of relative time indicators as you would ha
 		{it:rel_time_1} [{it:rel_time_2} [...]]  
 
 {synoptset 26 tabbed}{...}
+
+
 {pstd}
+Users should shape their dataset to a long format where each observation is at the unit-time level. 
+See {help eventstudyinteract##examples:an illustration} to the syntax.
 The syntax is similar to {helpb reghdfe} in specifying fixed effects (with {help reghdfe##opt_absorb:absorb}) 
-and the type of standard error reported (with {help reghdfe##opt_vce:vcetype}).  Regressors other than the relative time indicators need to be specified separately in {opth covariate:s(varlist)}.
+and the type of standard error reported (with {help reghdfe##opt_vce:vcetype}).  
+Relative times is definited relative to the initial treatment, and can be missing for never treated units. 
+Regressors other than the relative time indicators need to be specified separately in {opth covariate:s(varlist)}.
 Furthermore, it also requires the user to specify the cohort categories as well as which cohort is the control control (see {help eventstudyinteract##by_notes:important notes below}).  
 Note that Sun and Abraham (2020) only establishes the validity of the IW estimators for balanced panel data without covariates. {opt eventstudyinteract} evaluates the IW estimators for unbalanced panel data as well.  
 
@@ -50,12 +57,16 @@ Installation of {opt eventstudyinteract} will install {helpb avar} and {helpb re
 
 {synopthdr :options}
 {synoptline}
-{syntab :Options}
-{synopt :{opth cohort(varname)}}categorical variable that corresponds to cohort (see {help eventstudyinteract##by_notes:important notes below}){p_end}
+{syntab :Must specify}
+{marker cohort}{...}
+{synopt :{opth cohort(varname)}}categorical variable that corresponds that contains the initial treatment timing of each unit.
+If there are units that receive multiple treatments, Sun and Abraham (2020) defines the initial treatment timing to be based on the first treatment.
+Cohort can be missing for never treated units.{p_end}
 {synopt :{opth control_cohort(varname)}}binary variable that corresponds to the control cohort, which can be never-treated units or last-treated units.
 If using last-treated unit as control cohort, exclude the time periods when the last cohort receives treatment. {p_end}
 {synopt :{opth absorb(varlist)}}specifies unit and time fixed effects.{p_end}
 
+{syntab :Optional}
 {synopt :{opth covariate:s(varlist)}}specify covariates that lend validity to the parallel trends assumption, i.e. covariates you would have included in the canonical two-way fixed effects regressions. {p_end}
 
 {syntab :VCE}
@@ -96,19 +107,11 @@ They show this specification is not robust to treatment effects heterogeneity an
 It is optimized for speed in large panel datasets thanks to {helpb reghdfe}.
 
 {pstd}
-For each relative time indicator specified in {it:rel_time_list}, {opt eventstudyinteract} estimates the IW estimator for the treatment effect associated with the given relative time. It provides built-in options to control for fixed effects and covariates
-(see {help eventstudyinteract##syntax:Controls}).    
+For each relative time indicator specified in {it:rel_time_list}, {opt eventstudyinteract} estimates the IW estimator for the treatment effect associated with the given relative time. 
+It provides built-in options to control for fixed effects and covariates
+(see {help eventstudyinteract##syntax:covariates}).    
 
-{dlgtab:Main}
 
-{marker by_notes}{...}
-{phang}{opth cohort(varname)} is a categorical varaible that contains the initial treatment timing of each unit.
-
-{phang}{opth control_cohort(varname)} is an indicator varaible that is equal to one if the cohort is last treated or never treated.
-
-{pmore}
-Users should shape their dataset to a long format where each observation is at the unit-time level. Users should prepare the cohort and control cohort variables as illustrated in the example. 
- 
 {marker examples}{...}
 {title:Examples}
 
