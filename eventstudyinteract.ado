@@ -68,7 +68,8 @@ program define eventstudyinteract, eclass sortpreserve
 	foreach l of varlist `nvarlist' {
 		foreach yy of local cohort_list {
 			tempvar n`l'_`yy'
-			qui gen `n`l'_`yy''  = (`cohort' == `yy') * `l'
+			qui gen `n`l'_`yy''  = (`cohort' == `yy') * `l' 
+			// TODO: might be more efficient to use the c. operator if format w/o missing
 			local cohort_rel_varlist "`cohort_rel_varlist' `n`l'_`yy''"
 		}
 	}
@@ -146,7 +147,10 @@ program define eventstudyinteract, eclass sortpreserve
 	ereturn matrix V_iw `V_iw'
 	ereturn matrix ff_w `ff_w'
 	ereturn matrix Sigma_l `Sigma_l'
+	
+	ereturn local title "IW estimates for dynamic effects"
 	* Display results	
+	_coef_table_header
 	_coef_table , bmatrix(e(b_iw)) vmatrix(`V_iw_diag')
 
 end	
