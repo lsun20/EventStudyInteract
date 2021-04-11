@@ -15,6 +15,12 @@ To install the **eventstudyinteract** package , execute the following in Stata:
 
 `github install lsun20/eventstudyinteract`
 
+which should install the dependency packages.  If not working, try manually install
+
+`ssc install avar`
+`ssc install reghdfe`
+`ssc install ftools`
+
 To update the **eventstudyinteract**  package, execute the following in Stata:
 
 `github update eventstudyinteract`
