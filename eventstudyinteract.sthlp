@@ -148,6 +148,13 @@ Implicitly this assumes that effects outside the lead windows are zero.  {p_end}
 {phang2}. {stata set matsize 800 }{p_end}
 {phang2}. {stata eventstudyinteract ln_wage g_* g0-g18, cohort(first_union) control_cohort(never_union) covariates(south) absorb(i.idcode i.year) vce(cluster idcode) }{p_end}
 
+{pstd} We may feed the estimates into {helpb coefplot} for an event study plot.{p_end}
+{phang2}. {stata matrix C = e(b_iw)}{p_end}
+{phang2}. {stata mata st_matrix("A",sqrt(st_matrix("e(V_iw)")))}{p_end}
+{phang2}. {stata matrix C = C \ A}{p_end}
+{phang2}. {stata matrix list C}{p_end}
+{phang2}. {stata coefplot matrix(C[1]), se(C[2])}{p_end}
+
 {pstd} Pre-treatment effects seem relatively constant, which might suggest binning the many leads. 
 TODO: current implementation of bins does not follow Sun and Abraham (2020) exactly due to coding challenge.  
 But it is valid if effects in the bin are constant for each cohort.{p_end}
