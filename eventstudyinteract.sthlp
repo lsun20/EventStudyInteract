@@ -76,8 +76,11 @@ may be {opt un:adjusted} (default), {opt r:obust} or {opt cl:uster} {help fvvarl
 
 {syntab :Saved Output}
 {pstd}
-{opt eventstudyinteract} reports the IW estimates and standard error.  
-Since the interacted regression is performed by {helpb reghdfe}, it keeps all e() results from  {helpb reghdfe}.  
+{opt eventstudyinteract} reports the IW estimates in {cmd:e(b_iw)} and standard error in {cmd:e(V_iw)}.  
+Since the interacted regression is performed by {helpb reghdfe}, it keeps all {cmd:e(b)} results from  {helpb reghdfe} (unlabeled at the moment).
+Specifically, the estimates of cohort-specific effect for the given relative time are extracted from {cmd:e()} 
+and reported in {cmd:e(b_interact)}
+ as well as the variance associated with each estimator in  {cmd:e(V_interact)}.
 In addition, it stores the following in {cmd:e()}:
 
 {synoptset 24 tabbed}{...}
@@ -85,8 +88,9 @@ In addition, it stores the following in {cmd:e()}:
 {syntab:Matrices}
 {synopt:{cmd:e(b_iw)}}IW estimate vector{p_end}
 {synopt:{cmd:e(V_iw)}}pointwise variance estimate of the IW estimators{p_end}
-{synopt:{cmd:e(b_interact)}} Each column vector contains estimates of cohort-specific effect for the given relative time. {p_end}
-{synopt:{cmd:e(ff_w)}} Each column vector contains estimates of cohort shares underlying the given relative time. {p_end}
+{synopt:{cmd:e(b_interact)}}Each column vector contains estimates of cohort-specific effect for the given relative time. {p_end}
+{synopt:{cmd:e(V_interact)}}Each column vector contains variance estimate of the cohort-specific effect estimator for the given relative time. {p_end}
+{synopt:{cmd:e(ff_w)}}Each column vector contains estimates of cohort shares underlying the given relative time. {p_end}
 {synopt:{cmd:e(Sigma_l)}}variance estimate of the cohort share estimators{p_end}
 
 {synoptline}

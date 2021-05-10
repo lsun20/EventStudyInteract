@@ -2,9 +2,9 @@
 capture program drop eventstudyinteract
 program define eventstudyinteract, eclass sortpreserve
 	version 13 
-	syntax varlist(min=1 numeric) [if] [in] [aweight fweight], cohort(varname) ///
+	syntax varlist(min=1 numeric) [if] [in] [aweight fweight], absorb(varlist numeric ts fv) cohort(varname) ///
 		control_cohort(varname) ///
-		[COVARIATEs(varlist numeric ts fv) absorb(varlist numeric ts fv) vce(string)   ///
+		[COVARIATEs(varlist numeric ts fv)  vce(string)   ///
 		]
 	set more off
 	
@@ -80,11 +80,11 @@ program define eventstudyinteract, eclass sortpreserve
 		}
 	}
 	* Estimate the interacted regression
-	tempname evt_bb b V
+	tempname evt_bb b evt_VV V
 	qui reghdfe `lhs'  `cohort_rel_varlist'  `covariates' `wt' if `touse', absorb(`absorb') vce(`vce')
-	local bcohort_rel_varlist "`bcohort_rel_varlist' `covariates'" // TODO: does not catch the constant term.
+	local bcohort_rel_varlist "`bcohort_rel_varlist' `covariates'" // TODO: does not catch the constant term if reghdfe includes a constant.
 	mat `b' = e(b)
-	mat `V' = e(V)
+	mata st_matrix("`V'",diagonal(st_matrix("e(V)"))')
 	* Convert the delta estimate vector to a matrix where each column is a relative time
 	local end = 0
 	forval i = 1/`nrel_times' {
@@ -92,9 +92,12 @@ program define eventstudyinteract, eclass sortpreserve
 		local end = `start'+`ncohort'-1
 		mat `b'`i' = `b'[.,`start'..`end']
 		mat `evt_bb'  = nullmat(`evt_bb') \ `b'`i'
+		mat `V'`i' = `V'[.,`start'..`end']
+		mat `evt_VV'  = nullmat(`evt_VV') \ `V'`i'
 
 	}
 	mat `evt_bb' = `evt_bb''
+	mat `evt_VV' = `evt_VV''
 
 	* Take weighted average for IW estimators
 	tempname w delta b_iw nc nr
@@ -104,12 +107,12 @@ program define eventstudyinteract, eclass sortpreserve
 	mata: st_matrix("`b_iw'", `b_iw')
 	mata: `nc' = rows(`w')
 	mata: `nr' = cols(`w')
-	
+
 	* Ptwise variance from cohort share estimation and interacted regression
 	tempname VV  wlong V_iw V_iw_diag 
 	
 	* VCV from the interacted regression
-	mata: `VV' = st_matrix("`V'")
+	mata: `VV' = st_matrix("e(V)")
 	mata: `VV' = `VV'[1..`nr'*`nc',1..`nr'*`nc'] // in case reghdfe reports _cons
 	mata: `wlong' = `w'':*J(1,`nc',e(1,`nr')') // create a "Toeplitz" matrix convolution
 	forval i=2/`nrel_times' {
@@ -141,8 +144,11 @@ program define eventstudyinteract, eclass sortpreserve
 	matrix colnames `ff_w' =  `dvarlist'
 	matrix colnames `evt_bb' =  `dvarlist'
 	matrix rownames `evt_bb' =  `cohort_list'
-
+	matrix colnames `evt_VV' =  `dvarlist'
+	matrix rownames `evt_VV' =  `cohort_list'
+	
 	ereturn matrix b_interact `evt_bb'
+	ereturn matrix V_interact `evt_VV'
 	ereturn matrix b_iw  `b_iw' 
 	ereturn matrix V_iw `V_iw'
 	ereturn matrix ff_w `ff_w'
