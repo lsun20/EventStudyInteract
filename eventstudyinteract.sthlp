@@ -59,9 +59,9 @@ Installation of {opt eventstudyinteract} will install {helpb avar} and {helpb re
 {synoptline}
 {syntab :Must specify}
 {marker cohort}{...}
-{synopt :{opth cohort(varname)}}categorical variable that corresponds that contains the initial treatment timing of each unit.
+{synopt :{opth cohort(varname)}}categorical variable that corresponds to the initial treatment timing of each unit.
 If there are units that receive multiple treatments, Sun and Abraham (2020) defines the initial treatment timing to be based on the first treatment.
-Cohort can be missing for never treated units.{p_end}
+This categorical variable should be set to be missing for never treated units.{p_end}
 {synopt :{opth control_cohort(varname)}}binary variable that corresponds to the control cohort, which can be never-treated units or last-treated units.
 If using last-treated unit as control cohort, exclude the time periods when the last cohort receives treatment. {p_end}
 {synopt :{opth absorb(varlist)}}specifies unit and time fixed effects.{p_end}
@@ -122,7 +122,8 @@ It provides built-in options to control for fixed effects and covariates
 {pstd}Load the 1968 extract of the National Longitudinal Survey of Young Women and Mature Women.{p_end}
 {phang2}. {stata webuse nlswork, clear}{p_end}
 
-{pstd}Code the cohort categorical variable based on when the individual first joined the union.{p_end}
+{pstd}Code the cohort categorical variable based on when the individual first joined the union, 
+which will be inputted in {opth cohort(varname)}.{p_end}
 {phang2}. {stata gen union_year = year if union == 1 }{p_end}
 {phang2}. {stata "bysort idcode: egen first_union = min(union_year)"}{p_end}
 {phang2}. {stata drop union_year }{p_end}
@@ -130,7 +131,7 @@ It provides built-in options to control for fixed effects and covariates
 {pstd}Code the relative time categorical variable.{p_end}
 {phang2}. {stata gen ry = year - first_union}{p_end}
 
-{pstd} We take the control cohort to be individuals that never unionized.{p_end}
+{pstd} For the first example, we take the control cohort to be individuals that never unionized.{p_end}
 {phang2}. {stata gen never_union = (first_union == .)}{p_end}
 
 {pstd} Check if there is a sufficient number of treated units for each relative time. 
