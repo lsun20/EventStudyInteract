@@ -17,9 +17,11 @@ To install the **eventstudyinteract** package , execute the following in Stata:
 
 which should install the dependency packages.  If not working, try manually install
 
-`ssc install avar`
-`ssc install reghdfe`
-`ssc install ftools`
+`ssc install avar`  
+`ssc install reghdfe`  
+`ssc install ftools`  
+
+If you run into an error message of `class FixedEffects undefined`, this can usually be resolved by `reghdfe, compile` as suggested by the repository of [reghdfe](https://github.com/sergiocorreia/reghdfe/issues/181).
 
 To update the **eventstudyinteract**  package, execute the following in Stata:
 
