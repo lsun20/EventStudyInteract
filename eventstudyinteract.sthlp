@@ -77,7 +77,8 @@ may be {opt un:adjusted} (default), {opt r:obust} or {opt cl:uster} {help fvvarl
 {syntab :Saved Output}
 {pstd}
 {opt eventstudyinteract} reports the IW estimates in {cmd:e(b_iw)} and standard error in {cmd:e(V_iw)}.  
-Since the interacted regression is performed by {helpb reghdfe}, it keeps all {cmd:e(b)} results from  {helpb reghdfe} (unlabeled at the moment).
+Since the interacted regression is performed by {helpb reghdfe}, it keeps all {cmd:e(b)} results from  {helpb reghdfe} 
+(unlabeled at the moment other than covariates, which can be accessed via {cmd:_b[covariates]} and {cmd:_se[covariates]}).
 Specifically, the estimates of cohort-specific effect for the given relative time are extracted from {cmd:e()} 
 and reported in {cmd:e(b_interact)}
  as well as the variance associated with each estimator in  {cmd:e(V_interact)}.
