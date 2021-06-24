@@ -2,7 +2,7 @@
 capture program drop eventstudyinteract
 program define eventstudyinteract, eclass sortpreserve
 	version 13 
-	syntax varlist(min=1 numeric) [if] [in] [aweight fweight], absorb(varlist numeric ts fv) cohort(varname) ///
+	syntax varlist(min=1 numeric) [if] [in] [aw fw iw pw], absorb(varlist numeric ts fv) cohort(varname) ///
 		control_cohort(varname) ///
 		[COVARIATEs(varlist numeric ts fv)  vce(string)   ///
 		]
@@ -39,7 +39,7 @@ program define eventstudyinteract, eclass sortpreserve
 	foreach yy of local cohort_list {
 		tempvar cohort_ind resid`yy'
 		qui gen `cohort_ind'  = (`cohort' == `yy') 
-		qui regress `cohort_ind' `nvarlist'  `wt' if `touse' & `control_cohort' == 0 , nocons
+		qui regress `cohort_ind' `nvarlist'  if `touse' & `control_cohort' == 0 [`weight'`exp']  , nocons
 		mat `bb' = e(b)
 		matrix `ff_w'  = nullmat(`ff_w') \ `bb'
 		qui predict double `resid`yy'', resid
@@ -51,10 +51,10 @@ program define eventstudyinteract, eclass sortpreserve
 	* In case users have not set relative time indicators to zero for control cohort
 	* Manually restrict the sample to non-control cohort
 	tempname XX Sxx Sxxi S KSxxi Sigma_ff
-	mat accum `XX' = `nvarlist' if  `touse' & `control_cohort' == 0, nocons
+	mat accum `XX' = `nvarlist' if  `touse' & `control_cohort' == 0 [`weight'`exp'], nocons
 	mat `Sxx' = `XX'*1/r(N)
     mat `Sxxi' = syminv(`Sxx')
-	qui avar (`nresidlist') (`nvarlist')  if `touse' & `control_cohort' == 0, nocons robust
+	qui avar (`nresidlist') (`nvarlist')  if `touse' & `control_cohort' == 0 [`weight'`exp'], nocons robust
 	mat `S' = r(S)
     mat `KSxxi' = I(`ncohort')#`Sxxi'
     mat `Sigma_ff' = `KSxxi'*`S'*`KSxxi'*1/r(N)
@@ -81,7 +81,7 @@ program define eventstudyinteract, eclass sortpreserve
 	}
 	* Estimate the interacted regression
 	tempname evt_bb b evt_VV V
-	qui reghdfe `lhs'  `cohort_rel_varlist'  `covariates' `wt' if `touse', absorb(`absorb') vce(`vce')
+	qui reghdfe `lhs'  `cohort_rel_varlist'  `covariates'  if `touse' [`weight'`exp'], absorb(`absorb') vce(`vce')
 	local bcohort_rel_varlist "`bcohort_rel_varlist' `covariates'" // TODO: does not catch the constant term if reghdfe includes a constant.
 	mat `b' = e(b)
 	mata st_matrix("`V'",diagonal(st_matrix("e(V)"))')
