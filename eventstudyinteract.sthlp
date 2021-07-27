@@ -35,21 +35,19 @@ Third, take the weighted average of estimates from the first step, with weights 
 {pstd}
 where {it:rel_time_list} is the list of relative time indicators as you would have included in the canonical two-way fixed effects regression, e.g.,
 {p_end} 
-		{it:rel_time_1} [{it:rel_time_2} [...]]  
-
-{synoptset 26 tabbed}{...}
-
+		{it:rel_time_1} [{it:rel_time_2} [...]] 
+		
+{pstd} See {help eventstudyinteract##examples:illustration} for an example of generating these relative time indicators. 
+The relative time indicators should take the value of zero for never treated units.  {p_end} 
 
 {pstd}
 Users should shape their dataset to a long format where each observation is at the unit-time level. 
-See {help eventstudyinteract##examples:an illustration} to the syntax.
+See {help eventstudyinteract##examples:illustration} for an example of specifying the syntax.
 The syntax is similar to {helpb reghdfe} in specifying fixed effects (with {help reghdfe##opt_absorb:absorb}) 
 and the type of standard error reported (with {help reghdfe##opt_vce:vcetype}).  
-Relative times is definited relative to the initial treatment, and can be missing for never treated units. 
 Regressors other than the relative time indicators need to be specified separately in {opth covariate:s(varlist)}.
 Furthermore, it also requires the user to specify the cohort categories as well as which cohort is the control control (see {help eventstudyinteract##by_notes:important notes below}).  
 Note that Sun and Abraham (2020) only establishes the validity of the IW estimators for balanced panel data without covariates. {opt eventstudyinteract} evaluates the IW estimators for unbalanced panel data as well.  
-
 
 {pstd}
 {opt eventstudyinteract} requires {helpb avar} (Baum and Schaffer, 2013) and {helpb reghdfe} (Sergio, 2017) to be installed.

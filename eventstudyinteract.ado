@@ -26,7 +26,7 @@ program define eventstudyinteract, eclass sortpreserve
 	}	
 
 	* Get cohort count  and count of relative time
-	qui levelsof `cohort', local(cohort_list) 
+	qui levelsof `cohort' if  `control_cohort' == 0, local(cohort_list) 
  	local nrel_times: word count `nvarlist' 
 	local ncohort: word count `cohort_list'  
 	
