@@ -28,9 +28,9 @@ Third, take the weighted average of estimates from the first step, with weights 
 {p 8 15 2}
 {cmd:eventstudyinteract}
 {y} {rel_time_list} {ifin}
-{weight} {cmd:,} {opth a:bsorb(reghdfe##absvar:absvars)} {opth c:ohort(eventstudyinteract##cohort:variable)}
-            {opth c:ontrol_cohort(eventstudyinteract##cohort:variable)} 
- [{it:options} {opth c:ovariates(eventstudyinteract##cohort:varlist)}]
+{weight} {cmd:,} {opth absorb:(reghdfe##absvar:absvars)} {opth cohort:(eventstudyinteract##cohort:variable)}
+            {opth control_cohort:(eventstudyinteract##cohort:variable)} 
+ [{it:options} {opth covariates:(eventstudyinteract##cohort:varlist)}]
  
 {pstd}
 where {it:rel_time_list} is the list of relative time indicators as you would have included in the canonical two-way fixed effects regression, e.g.,
@@ -45,8 +45,8 @@ Users should shape their dataset to a long format where each observation is at t
 See {help eventstudyinteract##examples:illustration} for an example of specifying the syntax.
 The syntax is similar to {helpb reghdfe} in specifying fixed effects (with {help reghdfe##opt_absorb:absorb}) 
 and the type of standard error reported (with {help reghdfe##opt_vce:vcetype}).  
-Regressors other than the relative time indicators need to be specified separately in {opth covariate:s(varlist)}.
-Furthermore, it also requires the user to specify the cohort categories as well as which cohort is the control control (see {help eventstudyinteract##by_notes:important notes below}).  
+Regressors other than the relative time indicators need to be specified separately in {opth covariates(varlist)}.
+Furthermore, it also requires the user to specify the cohort categories as well as which cohort is the control cohort (see {help eventstudyinteract##by_notes:important notes below}).  
 Note that Sun and Abraham (2020) only establishes the validity of the IW estimators for balanced panel data without covariates. {opt eventstudyinteract} evaluates the IW estimators for unbalanced panel data as well.  
 
 {pstd}
@@ -65,7 +65,7 @@ If using last-treated unit as control cohort, exclude the time periods when the 
 {synopt :{opth absorb(varlist)}}specifies unit and time fixed effects.{p_end}
 
 {syntab :Optional}
-{synopt :{opth covariate:s(varlist)}}specify covariates that lend validity to the parallel trends assumption, i.e. covariates you would have included in the canonical two-way fixed effects regressions. {p_end}
+{synopt :{opth covariates(varlist)}}specify covariates that lend validity to the parallel trends assumption, i.e. covariates you would have included in the canonical two-way fixed effects regressions. {p_end}
 
 {syntab :VCE}
 {synopt :{opt vce}{cmd:(}{help reghdfe##opt_vce:vcetype} [{cmd:,}{it:opt}]{cmd:)}}{it:vcetype}
