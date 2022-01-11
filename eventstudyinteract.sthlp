@@ -47,7 +47,7 @@ The syntax is similar to {helpb reghdfe} in specifying fixed effects (with {help
 and the type of standard error reported (with {help reghdfe##opt_vce:vcetype}).  
 Regressors other than the relative time indicators need to be specified separately in {opth covariates(varlist)}.
 Furthermore, it also requires the user to specify the cohort categories as well as which cohort is the control cohort (see {help eventstudyinteract##by_notes:important notes below}).  
-Note that Sun and Abraham (2020) only establishes the validity of the IW estimators for balanced panel data without covariates. {opt eventstudyinteract} evaluates the IW estimators for unbalanced panel data as well.  
+Note that Sun and Abraham (2020) only establishes the validity of the IW estimators for balanced panel data without covariates. {opt eventstudyinteract} does not impose a balanced panel by dropping units with observations that are missing in any time period.  Instead, it evaluates the IW estimators for unbalanced panel data by estimating the interacted regression using all observations.  
 
 {pstd}
 {opt eventstudyinteract} requires {helpb avar} (Baum and Schaffer, 2013) and {helpb reghdfe} (Sergio, 2017) to be installed.
