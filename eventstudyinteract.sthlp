@@ -192,8 +192,8 @@ with weights corresponding to the cohort share estimates: {p_end}
 {marker acknowledgements}{...}
 {title:Acknowledgements}
   
-{pstd}Thank you to the users of early versions of the program who devoted time to reporting
-the bugs that they encountered.
+{pstd}Thanks to the users of early versions of the program who devoted time to reporting
+the bugs that they encountered.  Thanks to Yunan Ji, Soomi Kim, Paichen Li, Emma Rackstraw and Jie Zhou for beta testing.  Thanks to Claudio A. Mora-García for incorporating covariance estimation into the code.
  
 {marker references}{...}
 {title:References}
