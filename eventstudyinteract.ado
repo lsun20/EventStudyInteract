@@ -1,4 +1,5 @@
-*! version 0.0  31mar2021  Liyang Sun, lsun20@mit.edu
+*! version 0.1  24jan2022  Liyang Sun, lsun20@mit.edu
+
 capture program drop eventstudyinteract
 program define eventstudyinteract, eclass sortpreserve
 	version 13 
@@ -118,20 +119,22 @@ program define eventstudyinteract, eclass sortpreserve
 	forval i=2/`nrel_times' {
 		mata: `wlong' = (`wlong', `w'':*J(1,`nc',e(`i',`nr')'))
 	}
-	mata: `V_iw' = diagonal(`wlong'*`VV'*`wlong'')
-	
+	mata: `V_iw' = `wlong'*`VV'*`wlong''
 	* VCV from cohort share estimation
 	tempname Vshare Vshare_evt share_idx Sigma_l
 	mata: `Vshare' = st_matrix("`Sigma_ff'")
 	mata: `Sigma_l' = J(0,0,.)
 	mata: `share_idx' = range(0,(`nc'-1)*`nr',`nr')
 	forval i=1/`nrel_times' {
-		mata: `Vshare_evt' = `Vshare'[`share_idx':+`i', `share_idx':+`i']
-		mata: `V_iw'[`i'] = `V_iw'[`i'] + (`delta'[,`i'])'*`Vshare_evt'*(`delta'[,`i'])
-		mata: `Sigma_l' = blockdiag(`Sigma_l',`Vshare_evt')
+		forval j=1/`i' {
+			mata: `Vshare_evt' = `Vshare'[`share_idx':+`i', `share_idx':+`j']
+			mata: `V_iw'[`i',`j'] = `V_iw'[`i',`j'] + (`delta'[,`i'])'*`Vshare_evt'*(`delta'[,`j'])
+// 			mata: `Sigma_l' = blockdiag(`Sigma_l',`Vshare_evt')
+		}
 	}
-	mata: `V_iw' = `V_iw''
-	mata: st_matrix("`Sigma_l'", `Sigma_l')
+	mata: `V_iw' = makesymmetric(`V_iw')
+// 	mata: `V_iw' = `V_iw''
+// 	mata: st_matrix("`Sigma_l'", `Sigma_l')
 	mata: st_matrix("`V_iw'", `V_iw')
 	
 	mata: `V_iw_diag' = diag(`V_iw')
@@ -140,8 +143,13 @@ program define eventstudyinteract, eclass sortpreserve
 	
 	matrix colnames `b_iw' =  `dvarlist'
 	matrix colnames `V_iw' =  `dvarlist'
+	matrix rownames `V_iw' =  `dvarlist'
+
 	matrix rownames `ff_w' =  `cohort_list'
 	matrix colnames `ff_w' =  `dvarlist'
+	matrix rownames `Sigma_ff' =  `cohort_list'
+	matrix colnames `Sigma_ff' =  `cohort_list'
+
 	matrix colnames `evt_bb' =  `dvarlist'
 	matrix rownames `evt_bb' =  `cohort_list'
 	matrix colnames `evt_VV' =  `dvarlist'
@@ -152,7 +160,8 @@ program define eventstudyinteract, eclass sortpreserve
 	ereturn matrix b_iw  `b_iw' 
 	ereturn matrix V_iw `V_iw'
 	ereturn matrix ff_w `ff_w'
-	ereturn matrix Sigma_l `Sigma_l'
+// 	ereturn matrix Sigma_l `Sigma_l'
+	ereturn matrix Sigma_ff `Sigma_ff'
 	
 	ereturn local title "IW estimates for dynamic effects"
 	* Display results	
