@@ -86,11 +86,11 @@ In addition, it stores the following in {cmd:e()}:
 
 {syntab:Matrices}
 {synopt:{cmd:e(b_iw)}}IW estimate vector{p_end}
-{synopt:{cmd:e(V_iw)}}pointwise variance estimate of the IW estimators{p_end}
+{synopt:{cmd:e(V_iw)}}pointwise variance covariance estimate of the IW estimators, which can be used as input of pre-trend test such as {browse "https://github.com/jonathandroth/pretrends":pretrends}{p_end}
 {synopt:{cmd:e(b_interact)}}Each column vector contains estimates of cohort-specific effect for the given relative time. {p_end}
 {synopt:{cmd:e(V_interact)}}Each column vector contains variance estimate of the cohort-specific effect estimator for the given relative time. {p_end}
 {synopt:{cmd:e(ff_w)}}Each column vector contains estimates of cohort shares underlying the given relative time. {p_end}
-{synopt:{cmd:e(Sigma_l)}}variance estimate of the cohort share estimators{p_end}
+{synopt:{cmd:e(Sigma_ff)}}variance estimate of the cohort share estimators{p_end}
 
 {synoptline}
 {p 4 6 2}
@@ -154,8 +154,8 @@ Implicitly this assumes that effects outside the lead windows are zero.  {p_end}
 
 {pstd} We may feed the estimates into {helpb coefplot} for an event study plot.{p_end}
 {phang2}. {stata matrix C = e(b_iw)}{p_end}
-{phang2}. {stata mata st_matrix("A",sqrt(st_matrix("e(V_iw)")))}{p_end}
-{phang2}. {stata matrix C = C \ A}{p_end}
+{phang2}. {stata mata st_matrix("A",sqrt(diagonal(st_matrix("e(V_iw)"))))}{p_end}
+{phang2}. {stata matrix C = C \ A'}{p_end}
 {phang2}. {stata matrix list C}{p_end}
 {phang2}. {stata coefplot matrix(C[1]), se(C[2])}{p_end}
 
