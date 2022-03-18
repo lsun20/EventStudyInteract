@@ -198,7 +198,32 @@ and {cmd:e(V)} a workaround is the following: {p_end}
 {phang2}. {stata matrix V = e(V_iw)}{p_end}
 {phang2}. {stata ereturn post b V}{p_end}
 {phang2}. {stata lincom (g0 + g1 + g2 + g3 + g4)/5}{p_end}
- 
+
+{title:Compare event study estimates for subsamples}
+{pstd} Suppose we want to compare the average effect over the first five years of joining the union between college graduates and non-college graduates. We can first estimate their separate effects by interacting the relative time indicators with the indicator of college graduates: {p_end}
+	{cmd:forvalues k = 18(-1)2 {c -(}}
+	{cmd:   gen g_`k'_collgrad0 = ry == -`k' & collgrad == 0}
+	{cmd:{c )-}}
+	{cmd:forvalues k = 0/18 {c -(}}
+	{cmd:     gen g`k'_collgrad0 = ry == `k' & collgrad == 0}
+	{cmd:{c )-}}
+	{cmd:gen g_l4_collgrad0 = ry <= -4 & collgrad == 0} 
+	{cmd:forvalues k = 18(-1)2 {c -(}}
+	{cmd:   gen g_`k'_collgrad1 = ry == -`k' & collgrad == 1}
+	{cmd:{c )-}}
+	{cmd:forvalues k = 0/18 {c -(}}
+	{cmd:     gen g`k'_collgrad1 = ry == `k' & collgrad == 1}
+	{cmd:{c )-}}
+	{cmd:gen g_l4_collgrad1 = ry <= -4 & collgrad == 1}
+
+{pstd} We can then use {helpb lincom} to estimate the difference in their average effects as below.  Alternatively, we can use {helpb eventstudyinteract} separately on the subsamples of college graduates and non-college graduates. 
+The point estimates might be slightly different because the control cohort is restricted to college graduates and non-college graduates respectively. The approach below combines both into one control cohort. {p_end}	
+{phang2}. eventstudyinteract ln_wage g_l4_collgrad* g_3_collgrad* g_2_collgrad* g0_collgrad0-g18_collgrad0  g0_collgrad1-g18_collgrad1 if first_union != . & year < 88, cohort(first_union) control_cohort(last_union)  absorb(i.idcode i.year) 
+vce(cluster idcode)  {p_end}
+{phang2}. {stata matrix b = e(b_iw)}{p_end}
+{phang2}. {stata matrix V = e(V_iw)}{p_end}
+{phang2}. {stata ereturn post b V}{p_end}
+{phang2}. {stata lincom (g0_collgrad1 + g1_collgrad1 + g2_collgrad1 + g3_collgrad1 + g4_collgrad1)/5 - (g0_collgrad0 + g1_collgrad0 + g2_collgrad0 + g3_collgrad0 + g4_collgrad0)/5}{p_end}
 
 {marker acknowledgements}{...}
 {title:Acknowledgements}
