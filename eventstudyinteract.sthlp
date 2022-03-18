@@ -152,6 +152,7 @@ Implicitly this assumes that effects outside the lead windows are zero.  {p_end}
 {phang2}. {stata set matsize 800 }{p_end}
 {phang2}. {stata eventstudyinteract ln_wage g_* g0-g18, cohort(first_union) control_cohort(never_union) covariates(south) absorb(i.idcode i.year) vce(cluster idcode) }{p_end}
 
+{title:Event study plots}
 {pstd} We may feed the estimates into {helpb coefplot} for an event study plot.{p_end}
 {phang2}. {stata matrix C = e(b_iw)}{p_end}
 {phang2}. {stata mata st_matrix("A",sqrt(diagonal(st_matrix("e(V_iw)"))))}{p_end}
@@ -159,11 +160,13 @@ Implicitly this assumes that effects outside the lead windows are zero.  {p_end}
 {phang2}. {stata matrix list C}{p_end}
 {phang2}. {stata coefplot matrix(C[1]), se(C[2])}{p_end}
 
+{title:Binning}
 {pstd} Pre-treatment effects seem relatively constant, which might suggest binning the many leads. 
 TODO: current implementation of bins does not follow Sun and Abraham (2020) exactly due to coding challenge.  
 But it is valid if effects in the bin are constant for each cohort.{p_end}
 {phang2}. {stata gen g_l4 = ry <= -4}{p_end}
 
+{title:Using the last treated as the control cohort}
 {pstd} Alternatively, we can take the control cohort to be individuals that were unionized last.{p_end}
 {phang2}. {stata gen last_union = (first_union == 88)}{p_end}
 
@@ -171,6 +174,7 @@ But it is valid if effects in the bin are constant for each cohort.{p_end}
 the treated periods for the last-treated cohort.{p_end}
 {phang2}. {stata eventstudyinteract ln_wage g_l4 g_3 g_2 g0-g18 if first_union != . & year < 88, cohort(first_union) control_cohort(last_union) covariates(south) absorb(i.idcode i.year) vce(cluster idcode) }{p_end}
 
+{title:Understanding the mechanics of the IW estimator}
 {pstd} We can look at the share of cohorts underlying the IW estimates for each relative time.{p_end}
 {phang2}. {stata matrix list e(ff_w) }{p_end}
 
@@ -187,7 +191,14 @@ with weights corresponding to the cohort share estimates: {p_end}
 {phang2}. {stata matrix nu = delta[1...,1]'*weight[1...,1]}{p_end}
 {phang2}. {stata matrix list nu}{p_end}
 
-
+{title:Aggregating event study estimates}
+{pstd} It is possible to use {helpb lincom} to estimate the average effect, say over the first five years of joining the union. However, since {helpb lincom} looks for coefficients and variance covariance matrix stored in {cmd:e(b)} 
+and {cmd:e(V)} a workaround is the following: {p_end}
+{phang2}. {stata matrix b = e(b_iw)}{p_end}
+{phang2}. {stata matrix V = e(V_iw)}{p_end}
+{phang2}. {stata ereturn post b V}{p_end}
+{phang2}. {stata lincom (g0 + g1 + g2 + g3 + g4)/5}{p_end}
+ 
 
 {marker acknowledgements}{...}
 {title:Acknowledgements}
