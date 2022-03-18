@@ -32,4 +32,4 @@ Documentation is included in the Stata help file that is installed along with th
 ## Authors and acknowledgment
 Liyang Sun
 
-Preprint of Sun and Abraham (2020) is available on [my personal website](http://economics.mit.edu/files/14964).
+Preprint of Sun and Abraham (2020) is available on [my personal website](https://lsun20.github.io/event_studies_paper.pdf).
