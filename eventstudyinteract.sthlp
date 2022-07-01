@@ -170,7 +170,7 @@ But it is valid if effects in the bin are constant for each cohort.{p_end}
 {pstd} Alternatively, we can take the control cohort to be individuals that were unionized last.{p_end}
 {phang2}. {stata gen last_union = (first_union == 88)}{p_end}
 
-{pstd} If using the last-treated cohort as the control, be sure to restrict the analysis sample to be before 
+{pstd} If using the last-treated cohort as the control, be sure to restrict the analysis sample to exclude the never-treated (if any) and to be before 
 the treated periods for the last-treated cohort.{p_end}
 {phang2}. {stata eventstudyinteract ln_wage g_l4 g_3 g_2 g0-g18 if first_union != . & year < 88, cohort(first_union) control_cohort(last_union) covariates(south) absorb(i.idcode i.year) vce(cluster idcode) }{p_end}
 
