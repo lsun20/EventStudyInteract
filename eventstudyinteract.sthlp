@@ -199,6 +199,14 @@ and {cmd:e(V)} a workaround is the following: {p_end}
 {phang2}. {stata ereturn post b V}{p_end}
 {phang2}. {stata lincom (g0 + g1 + g2 + g3 + g4)/5}{p_end}
 
+{title:Aggregating event study estimates}
+{pstd} It is possible to use {helpb test} to perform a joint F-test of pretrends in the sense of testing whether all of the coefficients on the pre-event relative time indicators are jointly zero. However, since {helpb test} looks for coefficients and variance covariance matrix stored in {cmd:e(b)} 
+and {cmd:e(V)} a workaround is the following: {p_end}
+{phang2}. {stata matrix b = e(b_iw)}{p_end}
+{phang2}. {stata matrix V = e(V_iw)}{p_end}
+{phang2}. {stata ereturn post b V}{p_end}
+{phang2}. {stata test (g_l4=0) (g_3=0) (g_2=0)}{p_end}
+
 {title:Compare event study estimates for subsamples}
 {pstd} Suppose we want to compare the average effect over the first five years of joining the union between college graduates and non-college graduates. We can first estimate their separate effects by interacting the relative time indicators with the indicator of college graduates: {p_end}
 	{cmd:forvalues k = 18(-1)2 {c -(}}
