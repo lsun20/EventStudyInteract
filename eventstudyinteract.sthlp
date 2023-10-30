@@ -75,12 +75,16 @@ may be {opt un:adjusted} (default), {opt r:obust} or {opt cl:uster} {help fvvarl
 {syntab :Saved Output}
 {pstd}
 {opt eventstudyinteract} reports the IW estimates in {cmd:e(b_iw)} and standard error in {cmd:e(V_iw)}.  
-Since the interacted regression is performed by {helpb reghdfe}, it keeps all {cmd:e(b)} results from  {helpb reghdfe} 
-(unlabeled at the moment other than covariates, which can be accessed via {cmd:_b[covariates]} and {cmd:_se[covariates]}).
-Specifically, the estimates of cohort-specific effect for the given relative time are extracted from {cmd:e()} 
+Since the interacted regression is performed by {helpb reghdfe}, {cmd:e(b)}  keeps all results from  {helpb reghdfe} 
+(unlabeled at the moment other than covariates, which can be accessed via {cmd:_b[covariates]} and {cmd:_se[covariates]}). Stata's post-estimation commands such as {helpb test} look for coefficients and variance covariance matrix stored in {cmd:e(b)} 
+and {cmd:e(V)}. To use these commands on the IW estimates only, a workaround is to run the following before Stata's post-estimation commands: {p_end}
+{phang2}. {stata matrix b = e(b_iw)}{p_end}
+{phang2}. {stata matrix V = e(V_iw)}{p_end}
+{phang2}. {stata ereturn post b V}{p_end}
+{pstd}Additionally, the estimates of cohort-specific effect for the given relative time are extracted from {cmd:e()} 
 and reported in {cmd:e(b_interact)}
  as well as the variance associated with each estimator in  {cmd:e(V_interact)}.
-In addition, it stores the following in {cmd:e()}:
+In summary, the following results are stored in {cmd:e()}:
 
 {synoptset 24 tabbed}{...}
 
